@@ -1,0 +1,2267 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Broken Genesis</title>
+<style>
+*{box-sizing:border-box} [hidden]{display:none!important} :root{color-scheme:dark;--gold:#ffd27d;--edge:#464659;--panel:#151823}
+body{margin:0;background:#090b12;color:#f8f1e8;font:16px system-ui,sans-serif} main{max-width:1140px;margin:auto;padding:clamp(12px,3vw,32px)}
+button,select,input{font:inherit} button,select{color:inherit;background:#242838;border:1px solid var(--edge);padding:.65rem .85rem;border-radius:5px} button{cursor:pointer;touch-action:manipulation} button:hover,button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)} button:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.primary{background:var(--gold);color:#211508;font-weight:800;border-color:var(--gold)} .primary:hover{background:#ffe3ab;color:#211508}
+h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-spacing:.055em} h1{font-size:clamp(2.5rem,8vw,6rem)} h2{font-size:clamp(1.55rem,4vw,2.5rem)}
+.screen{padding:clamp(16px,4vw,40px);border:1px solid var(--edge);border-radius:10px;background:var(--panel)}
+.hero{display:grid;align-content:center;justify-items:start;min-height:min(74vh,620px);background:linear-gradient(90deg,#080a13ef,#080a1366),url(assets/lambda-rooftop.png) center/cover}
+.hero h1{max-width:8ch;color:var(--gold)} .row{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin:.8rem 0} .fields{display:grid;gap:.8rem;max-width:460px;margin:1rem 0}.fields label{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px;margin:1rem 0}
+.fighter{padding:.35rem .2rem;min-width:0;font-size:.8rem}
+.fighter canvas,.fighter .random-portrait{display:block;width:100%;aspect-ratio:1;max-width:74px;height:auto;margin:0 auto 4px}
+.fighter .random-portrait{display:grid}
+.campaign-choice{padding:0;border:0;margin:1rem 0}
+.campaign-choice legend{margin-bottom:.45rem}
+.random-portrait{display:grid;place-items:center;height:84px;margin-bottom:4px;position:relative;isolation:isolate;color:#ffe19a;font-size:2rem;font-weight:900}
+.random-portrait::before{content:'';position:absolute;inset:5px auto 3px;width:72px;z-index:-1;background:#090b13;
+  clip-path:polygon(15% 100%,19% 76%,37% 64%,36% 54%,27% 44%,26% 23%,33% 9%,49% 3%,65% 9%,73% 23%,73% 44%,64% 54%,63% 64%,81% 76%,85% 100%)}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:10px} .hud>div:last-child{text-align:right} .hud strong{display:block} .meter{height:12px;background:#343749;margin:4px 0;overflow:hidden;border-radius:3px}.meter i{display:block;height:100%;background:#fa6a67}.meter.skill i{background:#66cced}.meter.skill i.full{background:var(--gold)} .round{text-align:center;color:var(--gold);font-weight:800}.arena{position:relative} #game{width:100%;height:auto;display:block;border:1px solid var(--edge);border-radius:6px}
+.result{position:absolute;inset:0;display:grid;place-content:center;text-align:center;background:#090b12d9;padding:12px}.result .row{justify-content:center} .hint{font-size:.9rem;color:#c5c5d2}
+@media(max-width:430px){.hud{gap:5px;font-size:.8rem}.result h2{font-size:1.15rem}.result button{padding:.35rem}}
+.control-guide{margin-top:18px;display:grid;gap:16px}
+.control-guide h3,.control-guide h4{margin:0 0 8px}
+.control-guide h4{font-size:.95rem;color:var(--gold)}
+.control-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.control-group{background:#111420;border:1px solid var(--edge);border-radius:6px;padding:10px 12px}
+.control-group ul{margin:0;padding:0;list-style:none}
+.control-group li{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0;font-size:.88rem}
+.control-group kbd{white-space:nowrap;background:#272c40;border:1px solid #565d76;border-radius:4px;padding:2px 5px;color:#fff}
+.speech-bubble{position:absolute;z-index:1;width:max-content;max-width:min(76%,280px);padding:7px 11px;
+  background:#f8f0db;color:#171623;border:2px solid #211b32;border-radius:10px;box-shadow:0 3px 9px #05051190;
+  font-size:clamp(.75rem,1.7vw,.95rem);line-height:1.25;pointer-events:none}
+.speech-bubble::after{position:absolute;content:'';left:var(--tail);top:100%;width:10px;height:10px;
+  background:inherit;border-right:2px solid #211b32;border-bottom:2px solid #211b32;transform:translate(-50%,-5px) rotate(45deg)}
+.speech-bubble strong{display:block;color:#61431d;font-size:.78em;letter-spacing:.05em;margin-bottom:2px}
+.round-announcement{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#ffe4a1;
+  background:#0b0a1b54;text-align:center;font-size:clamp(1.5rem,6vw,4.5rem);font-weight:900;
+  text-shadow:0 3px 3px #110b16,0 0 18px #3b1d0c;letter-spacing:.02em}
+.meter.health i{background:#4be096}
+.round{white-space:pre-line}
+.combo-count{position:absolute;z-index:1;top:15%;inset-inline-start:4%;pointer-events:none;color:#ffe7ae;
+  font-size:clamp(.85rem,2.6vw,1.8rem);font-weight:900;letter-spacing:.06em;text-shadow:0 2px 4px #111,0 0 14px #a45622}
+#combo1{inset-inline-start:auto;inset-inline-end:4%}
+.boss-scene{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:center;padding:0 10px 6%;pointer-events:none;text-align:center;color:#f5eaff;text-shadow:0 2px 6px #140a24}
+.boss-scene strong{font-size:clamp(1rem,4.5vw,3.8rem);line-height:1;letter-spacing:.13em;text-transform:uppercase}
+.boss-scene span{max-width:min(86%,650px);font-size:clamp(.72rem,2.05vw,1.3rem);line-height:1.28;font-weight:650;
+  color:#f3eaff;margin-top:.48em;background:#120d27d9;padding:.32em .7em;border-radius:6px}
+.boss-scene [aria-hidden=true]{visibility:hidden}
+.reserve-hud{margin-top:4px;font-size:.75em;color:#d9dcec}
+.reserve-hud .meter{height:6px}
+.meter.health.warning i{background:#ff9d47}
+.meter.health.critical{box-shadow:0 0 8px #ff485d,0 0 16px #ff243a80}
+.meter.health.critical i{background:#ff485d;animation:skill-glow .8s ease-in-out infinite alternate}
+.meter.skill i{background:#a36bf4}
+.meter.skill.full{box-shadow:0 0 7px #c18dff,0 0 16px #a66bff9c}
+.meter.skill.full i {
+  background:linear-gradient(90deg,#873cf7,#bf79ff 38%,#f2d9ff 66%,#a85cff);
+  animation:skill-glow .8s ease-in-out infinite alternate;
+}
+@keyframes skill-glow {
+  from{filter:brightness(.8) saturate(1.16)}
+  to{filter:brightness(1.38) saturate(1.35)}
+}
+@media(prefers-reduced-motion:reduce){.meter.skill.full i,.meter.health.critical i{animation:none}}
+.matchup{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;gap:clamp(6px,2vw,28px);padding:clamp(8px,3vw,36px);text-align:center;
+  background:radial-gradient(ellipse at 50% 70%,#423147,#141323 61%,#090a12);}
+.matchup figure{margin:0;min-width:0;color:#fff2ce;font-size:clamp(.7rem,2.7vw,1.9rem);font-weight:900;overflow-wrap:anywhere}
+.matchup canvas{display:block;width:100%;height:clamp(72px,29vw,310px);object-fit:contain;margin:0 auto 4px}
+.matchup-versus{color:var(--gold);font-size:clamp(1rem,6vw,4rem);font-weight:950}
+.story-page{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);align-items:center;gap:clamp(14px,4vw,44px)}
+.story-page canvas{display:block;width:100%;height:auto;max-height:320px;object-fit:contain}
+.story-page h2{line-height:1.08}.story-page .story-copy{max-width:56ch;line-height:1.55}
+.story-page .hint{color:var(--gold)}
+#touch{display:none;position:fixed;inset:auto 0 0;z-index:5;justify-content:space-between;align-items:end;gap:8px;
+  margin:0;padding:0 max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+  pointer-events:none;user-select:none;-webkit-user-select:none}
+.touch-group{display:grid;gap:4px;min-width:0;align-content:center}
+.touch-action{grid-template-columns:repeat(3,minmax(0,1fr));width:clamp(155px,47vw,245px);pointer-events:auto}
+.touch-action:has([data-action="tag"]:not([hidden])){grid-template-columns:repeat(4,minmax(0,1fr))}
+#touch button{padding:3px 2px;min-width:0;min-height:44px;line-height:1.1;font-size:clamp(.65rem,2.5vw,.88rem);
+  border-color:#8995b2;background:#242d45dc;touch-action:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#touch button.is-held{background:#ffe19a;color:#241c18;border-color:#fff1ce}
+#touch button:is([data-action="super"],[data-action="super2"]){color:#ffe19a;border-color:#9d7940}
+#touch button:is([data-action="super"],[data-action="super2"]).is-held{color:#241c18}
+.touch-device #touch{display:flex}
+.touch-device #battle{padding:7px}
+#joystick{width:clamp(90px,29vw,142px);aspect-ratio:1;touch-action:none;pointer-events:auto;
+  display:grid;place-items:center;border-radius:50%;border:2px solid #929cb7;background:#141a2bd9;
+  color:#d4ddf6;position:relative;box-shadow:inset 0 0 0 7px #5e678637}
+#joystick::before,#joystick::after{content:'';position:absolute;background:#8c9abc45;pointer-events:none}
+#joystick::before{width:80%;height:1px} #joystick::after{width:1px;height:80%}
+#joystickKnob{width:47%;aspect-ratio:1;border-radius:50%;position:relative;z-index:1;
+  background:#606e93;border:2px solid #c0cce9;transform:translate(var(--stick-x,0px),var(--stick-y,0px));pointer-events:none}
+#battleExit button{padding:.4rem .65rem}
+@media (max-width:520px){
+  .story-page{grid-template-columns:1fr}
+  .story-page canvas{height:130px;width:100%;object-fit:contain}
+}
+@media (orientation:landscape) and (max-height:540px) and (max-width:1050px){
+  main{padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+  #storyProgress{margin:0;font-size:.72rem}
+  #battle .hud{margin:0;gap:8px;font-size:.75rem}
+  #battle .meter{margin:2px 0;height:7px}
+  #battle .hint{font-size:.72rem}
+  .touch-device #battle .arena{width:min(100%,calc((100dvh - 100px)*16/9));margin-inline:auto}
+  .touch-action{width:clamp(145px,28vw,220px)}
+  #battleExit{margin:0;text-align:center;justify-content:center}
+}
+@media (orientation:portrait){.touch-device #battle:has(#touch:not([hidden])){padding-bottom:160px}}
+</style>
+<main>
+  <section id="splash" class="screen hero"><h1>Broken Genesis</h1><button class="primary" id="continue">Continue</button></section>
+  <section id="menu" class="screen hero" hidden><h1>Broken Genesis</h1><div class="row"><button class="primary" id="arcadeMode">Arcade Mode</button><button id="storyMode">Story Mode</button><button id="tagMode">Tag Team</button><button id="openHelp">Help</button><button id="openSettings">Settings</button></div></section>
+  <section id="help" class="screen" hidden>
+    <h2>Help</h2>
+    <p class="hint">These hotkeys reflect your current bindings. To change them, go to Settings.</p>
+    <p class="hint">Touch controls: drag the joystick left or right to move, up to jump, and down to guard. Flick up twice for a high jump. Use the buttons on the right to attack or tag.</p>
+    <label>Move guide <select id="helpFighter"><option value="">Basic controls</option></select></label>
+    <div id="helpControls" class="control-guide" aria-label="Hotkeys"></div>
+    <div class="row"><button id="helpBack">Main Menu</button></div>
+  </section>
+  <section id="storyPage" class="screen story-page" aria-labelledby="storyTitle" hidden>
+    <canvas id="storyPortrait" width="310" height="320" aria-hidden="true"></canvas>
+    <div>
+      <p class="hint" id="storyChapter"></p>
+      <h2 id="storyTitle"></h2>
+      <div class="story-copy" id="storyCopy"></div>
+      <div class="row"><button class="primary" id="storyContinue"></button><button id="storyBack">Main Menu</button></div>
+    </div>
+  </section>
+  <section id="settings" class="screen" hidden>
+    <h2>Settings</h2>
+    <div class="fields">
+      <label>Music volume <input id="music" type="range" min="0" max="100"></label>
+      <label>Effects volume <input id="effects" type="range" min="0" max="100"></label>
+      <label>Background music <select id="track"><option value="0">Lambda After Dark</option><option value="1">Ciphers in Motion</option><option value="2">Genesis Pulse</option></select></label>
+      <label>Rounds per match <select id="rounds"><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>Touch controls <select id="touchPreference"><option value="auto">Auto</option><option value="on">On</option><option value="off">Off</option></select></label>
+    </div>
+    <h2>Controls</h2>
+    <p class="hint">Hold Guard to block. At full Skill, press High Punch + High Kick for Super 1 or Medium Punch + Medium Kick for Super 2.</p>
+    <div id="bindings" class="fields"></div>
+    <div class="row"><button id="restore">Restore default controls</button><button id="settingsBack">Back</button></div>
+  </section>
+  <section id="select" class="screen" hidden>
+    <h2 id="selectTitle">Arcade Mode</h2>
+    <fieldset id="storySeasonChoice" class="campaign-choice" hidden>
+      <legend>Choose a campaign</legend>
+      <button type="button" id="storySeason1" aria-pressed="true">Season 1</button>
+      <button type="button" id="storySeason2" aria-pressed="false">Season 2</button>
+    </fieldset>
+    <div class="row" id="rosterFilter">
+      <label>Roster <select id="rosterSeason"><option value="all">All fighters</option><option value="1">Season 1</option><option value="2">Season 2</option></select></label>
+    </div>
+    <p id="storyHelp" class="hint" hidden></p>
+    <div class="row"><button id="pick0"></button><button id="pick1"></button><button id="pick2" hidden></button><button id="pick3" hidden></button></div>
+    <div id="roster"></div>
+    <div class="row">
+      <label id="opponentChoice">Match type <select id="mode">
+        <option value="cpu">Player vs CPU</option><option value="human">Player vs Player</option><option value="spectate">CPU vs CPU</option>
+      </select></label>
+      <label id="difficulty">Difficulty <select id="ai"><option>Easy</option><option selected>Normal</option><option>Hard</option></select></label>
+      <span id="arenaHelp" class="hint">Arena is randomized each round.</span>
+    </div>
+    <div class="row"><button class="primary" id="fight" disabled>Start Fight</button><button id="selectBack">Main Menu</button></div>
+    <p class="hint" id="assetStatus" role="status">Loading fighters and arenas…</p>
+  </section>
+  <section id="battle" class="screen" hidden aria-label="Broken Genesis battle">
+    <p id="storyProgress" class="hint" hidden></p>
+    <div class="hud"><div id="hud0"></div><div class="round" id="round"></div><div id="hud1"></div></div>
+    <div class="arena">
+      <canvas id="game" width="960" height="540" aria-label="Battle arena"></canvas>
+      <section id="matchup" class="matchup" aria-label="Matchup" hidden>
+        <figure><canvas id="portrait0" width="340" height="320" aria-hidden="true"></canvas><figcaption id="matchupName0"></figcaption></figure>
+        <span class="matchup-versus">VS</span>
+        <figure><canvas id="portrait1" width="340" height="320" aria-hidden="true"></canvas><figcaption id="matchupName1"></figcaption></figure>
+      </section>
+      <div id="speechBubble" class="speech-bubble" role="status" hidden><strong id="speechName"></strong><span id="speechText"></span></div>
+      <div id="combo0" class="combo-count" hidden></div>
+      <div id="combo1" class="combo-count" hidden></div>
+      <div id="bossScene" class="boss-scene" role="status" hidden><strong id="bossSceneName"></strong><span id="bossSceneLine"></span></div>
+      <div id="roundAnnouncement" class="round-announcement" role="status" hidden></div>
+      <div id="result" class="result" hidden><h2 id="resultTitle"></h2><p id="score"></p><div class="row"><button id="advance" class="primary"></button><button id="changeFighters">Fighter Select</button></div></div>
+    </div>
+    <div id="touch" role="group" aria-label="Player 1 touch controls">
+      <div id="joystick" role="group" aria-label="Movement joystick"><span id="joystickKnob"></span></div>
+      <div id="touchAction" class="touch-group touch-action" role="group" aria-label="Attacks and super"></div>
+    </div>
+    <div class="row" id="battleExit"><button id="leave">Main Menu</button></div>
+  </section>
+</main>
+<script src="assets/dialogue.js"></script>
+<script src="assets/story.js"></script>
+<script src="assets/season-two.js"></script>
+<script src="assets/matchup-dialogue.js"></script>
+<script src="assets/second-supers.js"></script>
+<script src="assets/combat-animation.js"></script>
+<script src="assets/combat-effects.js"></script>
+<script src="assets/battle-sprites.js"></script>
+<script src="assets/punch-art.js"></script>
+<script src="assets/action-sheets.js"></script>
+<script src="assets/action-art.js"></script>
+<script>
+const roster=[{id:'bryan',name:'BRYAN',style:'strategist',desc:'Technical reads and precise timing.',color:'#384357',accent:'#c9d2e0',speed:3.4,power:1.0,reach:116},{id:'jonneil',name:'JONNEIL',style:'grappler',desc:'Close combat and heavy throws.',color:'#5c7b62',accent:'#d7c08b',speed:2.9,power:1.35,reach:110},{id:'ranelle',name:'RANELLE',style:'soldier',desc:'Disciplined footwork and range.',color:'#9c7447',accent:'#d8e2c5',speed:3.5,power:1.05,reach:120},{id:'yokan',name:'YOKAN',style:'swordsman',desc:'Wounded blade fighter with resolve.',color:'#7a4b62',accent:'#d8e6ff',speed:3.2,power:1.25,reach:132},{id:'dice',name:'DICE',style:'shadowcraft',desc:'Living shadows and tricky angles.',color:'#24263d',accent:'#9b8cff',speed:3.7,power:1.0,reach:128},{id:'roj',name:'ROJ',style:'swordsman',desc:'Measured duelist with lost memories.',color:'#754038',accent:'#e7c786',speed:3.3,power:1.25,reach:134},{id:'hope',name:'HOPE',style:'thief',desc:'Fast hands and evasive movement.',color:'#4a6c8a',accent:'#e7b6d4',speed:4.4,power:.85,reach:108},{id:'miguel',name:'MIGUEL',style:'ranger',desc:'Patient ranged pressure.',color:'#52744d',accent:'#d9b36f',speed:3.1,power:1.1,reach:138},{id:'bennedic',name:'BENNEDIC',style:'cursed',desc:'Warrior power with a dangerous edge.',color:'#6d4f7d',accent:'#e48b74',speed:3.0,power:1.4,reach:118},{id:'fallan',name:'FALLAN',style:'sorcerer',desc:'Arcane control and punishing bursts.',color:'#624f98',accent:'#b8c8ff',speed:3.0,power:1.3,reach:142},{id:'lynne',name:'LYNNE',style:'gambler',desc:'Unpredictable rhythm and sharp feints.',color:'#9b4b63',accent:'#f2d48a',speed:4.0,power:.95,reach:118},
+  {id:'clephus',name:'CLEPHUS',style:'dark element',desc:'Sigma’s leader controls the battlefield with dark energy.',color:'#e2daf5',accent:'#ac76ff',speed:3.5,power:1.13,reach:127,faction:'Sigma'},
+  {id:'karl',name:'KARL',style:'speed and claws',desc:'A ruthless speed fighter with metal claws.',color:'#d7a449',accent:'#e4f0ff',speed:5.15,power:.93,reach:119,faction:'Sigma'},
+  {id:'farrol',name:'FARROL',style:'brawler',desc:'An aggressive brawler with punishing heavy strikes.',color:'#c3c19b',accent:'#ffc181',speed:3.1,power:1.38,reach:116,faction:'Sigma'},
+  {id:'mohammad',name:'MOHAMMAD',style:'mysterious monk',desc:'A hooded Sigma monk who channels arcane seals through his staff.',color:'#ded2f0',accent:'#9cbdff',speed:2.95,power:1.12,reach:136,faction:'Sigma'},
+  {id:'denni',name:'DENNI',style:'heavy equipment',desc:'A brilliant mechanic with a hydraulic gauntlet and heavy tools.',color:'#4a7e83',accent:'#ffae64',speed:2.62,power:1.3,reach:127,faction:'Sigma'}
+].map(fighter=>({...fighter,season:1}));
+for(const fighter of seasonTwoFighters){
+  const {story:[openingTitle,opening,endingTitle,ending],intro,win,loss,projectile,super:signature,attacks,...entry}=fighter;
+  roster.push({...entry,season:2});
+  fighterDialogue[entry.id]={intro,win,loss};
+  fighterStories[entry.id]={
+    opening:{title:openingTitle,paragraphs:[opening]},
+    ending:{title:endingTitle,paragraphs:[ending]}
+  };
+}
+roster.push({id:'tyrone',name:'TYRONE',style:'morpher',desc:'Season 1’s antagonist transforms into a demon for five seconds.',
+  faction:'Villains',season:1,accent:'#ce85ff',speed:3.2,power:1.06,reach:132});
+const standaloneFighters=roster.filter(({id,faction})=>(faction&&id!=='tyrone')||id==='jonneil');
+const leftFacingArt=new Set(['bryan','yokan']);
+const $ = id => document.getElementById(id);
+const canvas = $('game'), ctx = canvas.getContext('2d');
+const projectilesByFighter = {
+  ranelle: {shape:'bullet', label:'Gun shot', speed:18, color:'#ffe29a'},
+  lynne: {shape:'card', label:'Cards', speed:10, color:'#ffd67e'},
+  miguel: {shape:'arrow', label:'Arrow', speed:14, color:'#d4e6a5'},
+  roj: {shape:'holy', label:'Holy Light', speed:12, color:'#fff1a2'},
+  fallan: {shape:'element', label:'Elements', speed:9, colors:['#ffad71','#80d6ff','#8ef5b7']},
+  hope: {shape:'star', label:'Shuriken', speed:13, color:'#b8e6ff'},
+  dice: {shape:'shadow', label:'Shadow', speed:8, color:'#ba8aff'},
+  clephus: {shape:'shadow', label:'Dark Pulse', speed:11, color:'#a668ff'},
+  mohammad: {shape:'rune', label:'Rune Bolt', speed:12, color:'#a0beff'},
+  denni: {shape:'piston', label:'Piston Shot', speed:9, color:'#ffb467', blast:48},
+  tyrone: {shape:'nebula', label:'Abyss Bolt', speed:10, color:'#ce85ff'}
+};
+for(const {id,projectile} of seasonTwoFighters){
+  if(projectile) projectilesByFighter[id]=projectile;
+}
+const actions = {left:'Left',right:'Right',jump:'Jump',guard:'Guard',
+  lp:'Low Punch',mp:'Medium Punch',hp:'High Punch',lk:'Low Kick',mk:'Medium Kick',hk:'High Kick',throw:'Projectile',tag:'Switch Fighter'};
+const defaults = [
+  {left:'KeyA',right:'KeyD',jump:'KeyW',guard:'KeyS',lp:'KeyJ',mp:'KeyK',hp:'KeyL',lk:'KeyU',mk:'KeyI',hk:'KeyO',throw:'KeyH',tag:'KeyQ'},
+  {left:'ArrowLeft',right:'ArrowRight',jump:'ArrowUp',guard:'ArrowDown',lp:'Digit1',mp:'Digit2',hp:'Digit3',lk:'Digit4',mk:'Digit5',hk:'Digit6',throw:'Digit7',tag:'Digit8'}
+];
+let saved;
+try { saved = JSON.parse(localStorage.getItem('broken-genesis-settings')); } catch {}
+const prefs = {music:55,effects:65,track:0,rounds:2,touchPreference:'auto',bindings:defaults.map(b=>({...b})),...saved};
+const existingKeys=new Set(Array.isArray(prefs.bindings)?prefs.bindings.flatMap(map=>Object.values(map||{})):[]);
+prefs.bindings=defaults.map((keys,i)=>{
+  const map=prefs.bindings?.[i]||{};
+  const tag=map.tag||[keys.tag,'KeyZ','KeyX','Digit9','Digit0','KeyC'].find(key=>!existingKeys.has(key))||keys.tag;
+  existingKeys.add(tag);
+  return {...keys,...map,tag};
+});
+function save() { try { localStorage.setItem('broken-genesis-settings',JSON.stringify(prefs)); } catch {} }
+function keyLabel(code) { return code.replace(/^(Key|Digit|Arrow)/,''); }
+for (const id of ['music','effects','track','rounds']) {
+  $(id).value = prefs[id];
+  $(id).oninput = () => {
+    prefs[id] = Number($(id).value);
+    save();
+    audioUnlock();
+    if (id === 'track') musicStep = 0;
+    mix();
+  };
+}
+
+let audio, musicGain, effectsGain, musicStep = 0, musicTimer;
+const soundtracks = [
+  {beat:180,bass:[38,38,41,36],lead:[62,65,69,72,69,65,60,57]},
+  {beat:145,bass:[45,43,41,43],lead:[69,72,76,74,72,67,64,67]},
+  {beat:215,bass:[36,39,41,34],lead:[60,63,67,70,72,67,65,58]}
+];
+function mix() {
+  if (!audio) return;
+  musicGain.gain.value = prefs.music / 100;
+  effectsGain.gain.value = prefs.effects / 100;
+}
+async function audioUnlock() {
+  const Audio = window.AudioContext || window.webkitAudioContext;
+  if (!Audio) return;
+  if (!audio) {
+    audio = new Audio();
+    musicGain = audio.createGain();
+    effectsGain = audio.createGain();
+    musicGain.connect(audio.destination);
+    effectsGain.connect(audio.destination);
+    mix();
+  }
+  try {
+    if (audio.state !== 'running') await audio.resume();
+    if (audio.state === 'running' && !musicTimer) musicTick();
+  } catch {}
+}
+addEventListener('pointerdown',audioUnlock);
+addEventListener('keydown',audioUnlock);
+function note(midi, duration, wave, volume, channel, delay=0, bend=0) {
+  if (!audio || audio.state !== 'running') return;
+  const time = audio.currentTime + delay, voice=audio.createOscillator(), envelope=audio.createGain();
+  const pitch = semitones => 440 * 2 ** ((midi + semitones - 69) / 12);
+  voice.type=wave;
+  voice.frequency.setValueAtTime(pitch(0),time);
+  voice.frequency.exponentialRampToValueAtTime(pitch(bend),time+duration);
+  envelope.gain.setValueAtTime(.001,time);
+  envelope.gain.exponentialRampToValueAtTime(volume,time+.013);
+  envelope.gain.exponentialRampToValueAtTime(.001,time+duration);
+  voice.connect(envelope).connect(channel);
+  voice.start(time);
+  voice.stop(time+duration);
+}
+function musicTick() {
+  const song=soundtracks[prefs.track], step=musicStep++ % 32;
+  const root=song.bass[Math.floor(step/8)];
+  if (audio.state==='running') {
+    if (step%2===0) note(root+(step%8===6?12:0),.28,'triangle',.15,musicGain);
+    if (step%4===0) note(34,.14,'sine',.19,musicGain,0,-16);
+    if (step%4===2) note(96,.05,'triangle',.055,musicGain,0,-26);
+    if (step%4!==3) note(song.lead[(step+Math.floor(step/8))%8],.16,'triangle',.075,musicGain);
+    if (step%8===0) [0,3,7].forEach(n=>note(root+24+n,.8,'sine',.024,musicGain));
+  }
+  musicTimer=setTimeout(musicTick,song.beat);
+}
+const effects = {
+  light:[57,-16],heavy:[46,-20],hit:[39,-19],guard:[78,-10],jump:[58,13],dash:[45,12],
+  throw:[75,-19],super:[47,24],ko:[53,-23]
+};
+function sfx(name) {
+  if (!effectsGain) return;
+  const [pitch,bend]=effects[name];
+  note(pitch,name==='ko'||name==='super'?.32:.12,'triangle',.23,effectsGain,0,bend);
+  if (['hit','super','guard','ko'].includes(name)) note(pitch+16,.10,'sawtooth',.045,effectsGain,.025,bend);
+}
+
+const loadImage = src => new Promise((resolve,reject)=>{
+  const image = new Image();
+  image.onload=()=>resolve(image);
+  image.onerror=()=>reject(new Error(src));
+  image.src=src;
+});
+const sprites=[], mirrorSprites=[], stages=[];
+let beastSprite, mirrorBeastSprite, dragonSprite, tyroneSprite, tyroneDemonSprite, mirrorTyroneDemonSprite;
+let enigmaRiftSprite, mirrorEnigmaRiftSprite, apolloSprite;
+const mirrorAccent='#58f0cd';
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+// Trace the gaps between figures at several heights. The original lineup is irregularly spaced.
+const seamRows=[0,45,90,145,205,275,340,362];
+const seams=[
+  [0,0,0,0,0,0,0,0], [110,111,108,102,101,96,86,86],
+  [220,217,215,201,204,202,199,199], [291,291,290,287,292,280,289,289],
+  [375,371,375,388,384,386,387,387], [483,481,479,477,475,475,478,478],
+  [583,582,582,582,588,584,579,579], [674,673,666,668,663,658,655,655],
+  [776,772,771,771,766,771,763,763], [878,873,868,874,879,878,876,876],
+  [1014,1006,981,985,994,1007,1008,1008], [1086,1086,1086,1086,1086,1086,1086,1086]
+];
+function makeSprite(image,index) {
+  const left=seams[index], right=seams[index+1];
+  const startX=Math.min(...left)*2, endX=Math.max(...right)*2;
+  const clip=document.createElement('canvas');
+  clip.width=endX-startX;
+  clip.height=image.naturalHeight;
+  const pen=clip.getContext('2d',{willReadFrequently:true});
+  pen.beginPath();
+  left.forEach((edge,row)=>pen.lineTo(edge*2-startX,seamRows[row]*2));
+  for(let row=right.length-1;row>=0;row--) pen.lineTo(right[row]*2-startX,seamRows[row]*2);
+  pen.closePath();
+  pen.clip();
+  pen.drawImage(image,-startX,0);
+  return trimSprite(clip,pen);
+}
+function trimSprite(clip,pen) {
+  const {width,height}=clip, pixels=pen.getImageData(0,0,width,height).data;
+  let minX=width, minY=height, maxX=0, maxY=0;
+  for(let y=0;y<height;y++) for(let x=0;x<width;x++){
+    if(pixels[(y*width+x)*4+3]<32) continue;
+    minX=Math.min(minX,x); minY=Math.min(minY,y);
+    maxX=Math.max(maxX,x); maxY=Math.max(maxY,y);
+  }
+  return {image:clip,x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+}
+function flipSprite(sprite) {
+  const image=document.createElement('canvas');
+  image.width=sprite.w;
+  image.height=sprite.h;
+  const pen=image.getContext('2d');
+  pen.translate(sprite.w,0);
+  pen.scale(-1,1);
+  pen.drawImage(sprite.image,sprite.x,sprite.y,sprite.w,sprite.h,0,0,sprite.w,sprite.h);
+  return {image,x:0,y:0,w:sprite.w,h:sprite.h};
+}
+function makeMirrorSprite(sprite) {
+  const image=document.createElement('canvas');
+  image.width=sprite.w;
+  image.height=sprite.h;
+  const pen=image.getContext('2d',{willReadFrequently:true});
+  pen.drawImage(sprite.image,sprite.x,sprite.y,sprite.w,sprite.h,0,0,sprite.w,sprite.h);
+  const frame=pen.getImageData(0,0,image.width,image.height), pixels=frame.data;
+  for(let i=0;i<pixels.length;i+=4){
+    if(!pixels[i+3]) continue;
+    const light=pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722;
+    const shade=Math.min(1,(light/210)**.78);
+    pixels[i]=12+shade*111;
+    pixels[i+1]=25+shade*230;
+    pixels[i+2]=34+shade*206;
+  }
+  pen.putImageData(frame,0,0);
+  return {image,x:0,y:0,w:sprite.w,h:sprite.h};
+}
+const arenaCatalog=[
+  ['lambda-rooftop','Lambda Rooftop'],['lambda-industrial','Lambda Industrial'],
+  ['berican-forest','Berican Forest'],['colledo-turbine','Colledo Turbine'],
+  ['canary-square','Canary Square'],['gabriel-cathedral','St. Gabriel Cathedral'],
+  ['nadaraka-harbor','Nadaraka Harbor'],['cipher-ruins','Ciphers Headquarters'],
+  ['semmenelin-lair','Semmenelin’s Lair'],['hades-gate','Gate of Hades'],
+  ['shiva-crystal-gorge','Shiva World · Crystal Gorge',.76],
+  ['shiva-sky-sanctuary','Shiva World · Sky Sanctuary',.733],
+  ['shiva-aurora-fortress','Shiva World · Aurora Fortress',.756]
+];
+const lairIndex=arenaCatalog.findIndex(([asset])=>asset==='semmenelin-lair');
+const hadesIndex=arenaCatalog.findIndex(([asset])=>asset==='hades-gate');
+const normalArenas=arenaCatalog.map((_,i)=>i).filter(i=>i!==lairIndex&&i!==hadesIndex);
+const shivaArenas=normalArenas.filter(i=>arenaCatalog[i][0].startsWith('shiva-'));
+const originalArenas=normalArenas.filter(i=>!shivaArenas.includes(i));
+function standaloneSprite(image) {
+  const surface=document.createElement('canvas');
+  surface.width=image.naturalWidth;
+  surface.height=image.naturalHeight;
+  const pen=surface.getContext('2d',{willReadFrequently:true});
+  pen.drawImage(image,0,0);
+  return trimSprite(surface,pen);
+}
+Promise.all([loadPunchArtwork(),loadActionArtwork(),Promise.all(['cast-roster','hope-male','ranelle-gunner','bennedic-beast','semmenelin','tyrone','tyrone-demon','enigma-rift','apollo-spirit',
+  ...standaloneFighters.map(fighter=>fighter.id),...arenaCatalog.map(([asset])=>asset)].map(name=>loadImage('assets/'+name+(name.startsWith('shiva-')?'.jpg':'.png'))))])
+  .then(([,,[sheet,hope,ranelle,beast,dragon,tyrone,tyroneDemon,enigmaRift,apollo,...artwork]])=>{
+    const portraits={hope,ranelle,tyrone};
+    standaloneFighters.forEach(({id},i)=>{portraits[id]=artwork[i]});
+    const backgrounds=artwork.slice(standaloneFighters.length);
+    roster.forEach(({id},i)=>{
+      const sprite=portraits[id]?standaloneSprite(portraits[id]):makeSprite(sheet,i);
+      sprites.push(leftFacingArt.has(id)?flipSprite(sprite):sprite);
+    });
+    sprites.forEach(sprite=>mirrorSprites.push(makeMirrorSprite(sprite)));
+    beastSprite=standaloneSprite(beast);
+    mirrorBeastSprite=makeMirrorSprite(beastSprite);
+    dragonSprite=standaloneSprite(dragon);
+    tyroneSprite=standaloneSprite(tyrone);
+    tyroneDemonSprite=standaloneSprite(tyroneDemon);
+    mirrorTyroneDemonSprite=makeMirrorSprite(tyroneDemonSprite);
+    enigmaRiftSprite=standaloneSprite(enigmaRift);
+    mirrorEnigmaRiftSprite=makeMirrorSprite(enigmaRiftSprite);
+    apolloSprite=standaloneSprite(apollo);
+    stages.push(...backgrounds);
+    renderRoster();
+    $('fight').disabled=false;
+    $('assetStatus').textContent='';
+  }).catch(()=>{ $('assetStatus').textContent='Could not load game artwork. Refresh to retry.'; });
+
+const modePicks={arcade:[0,1],story:[0],tag:[0,1,2,3]};
+let screen='splash', gameMode='arcade', storySeason=1, pick=0, selected=modePicks.arcade, matchPicks=[], waitingForKey=null;
+let dialogue=null, interlude=null;
+const held=new Set(), tapped=new Set(), touchHeld=new Set();
+const touchPointers=new Map();
+let joystickPointer=null;
+const directionTaps=[null,null], dashRequests=[0,0];
+const jumpTaps=[null,null], highJumpRequests=[false,false];
+const dashTapWindow=250, dashDuration=9, jumpTapWindow=270, jumpBoostTicks=17;
+const gravity=.64;
+function clearGameInput() {
+  held.clear(); tapped.clear(); touchHeld.clear();
+  touchPointers.forEach(({button})=>button.classList.remove('is-held'));
+  touchPointers.clear();
+  resetJoystick();
+  directionTaps.fill(null); dashRequests.fill(0);
+  jumpTaps.fill(null); highJumpRequests.fill(false);
+}
+function acceptsFightInput() {
+  return screen==='battle'&&$('result').hidden&&!dialogue&&!interlude&&!roundOver;
+}
+function registerDirectionTap(player,direction,time,source) {
+  const previousTap=directionTaps[player];
+  if(previousTap&&previousTap.direction===direction&&previousTap.source===source&&
+      time-previousTap.time>=0&&time-previousTap.time<=dashTapWindow){
+    dashRequests[player]=direction;
+    directionTaps[player]=null;
+  } else {
+    directionTaps[player]={direction,time,source};
+  }
+}
+function registerJumpTap(player,time,source) {
+  const last=jumpTaps[player];
+  if(last?.source===source&&time>=last.time&&time-last.time<=jumpTapWindow){
+    highJumpRequests[player]=true;
+    jumpTaps[player]=null;
+  } else jumpTaps[player]={time,source};
+}
+function show(next) {
+  for(const id of ['splash','menu','settings','help','select','storyPage','battle']) $(id).hidden=id!==next;
+  screen=next;
+  dialogue=null;
+  interlude=null;
+  $('speechBubble').hidden=true;
+  $('roundAnnouncement').hidden=true;
+  $('matchup').hidden=true;
+  $('bossScene').hidden=true;
+  $('combo0').hidden=$('combo1').hidden=true;
+  waitingForKey=null;
+  clearGameInput();
+  if(next==='select') renderRoster();
+  $(next).querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+}
+$('continue').onclick=()=>{audioUnlock();show('menu')};
+$('openHelp').onclick=()=>{renderControls();show('help')};
+$('helpBack').onclick=()=>show('menu');
+$('helpFighter').onchange=renderControls;
+for(const fighter of roster){
+  const option=document.createElement('option');
+  option.value=fighter.id;option.textContent=fighterDisplayName(fighter);
+  $('helpFighter').append(option);
+}
+$('arcadeMode').onclick=()=>openSelection('arcade');
+$('storyMode').onclick=()=>openSelection('story');
+$('tagMode').onclick=()=>openSelection('tag');
+function openSelection(mode) {
+  gameMode=mode;
+  selected=modePicks[mode];
+  pick=0;
+  const story=mode==='story';
+  $('selectTitle').textContent=story?'Story Mode':mode==='tag'?'Tag Team':'Arcade Mode';
+  $('storyHelp').hidden=!story;
+  $('storySeasonChoice').hidden=!story;
+  $('rosterFilter').hidden=story;
+  updateStoryHelp();
+  $('arenaHelp').textContent=story?'Each level has one arena.':'Arena is randomized each round.';
+  $('pick1').hidden=story;
+  $('pick2').hidden=mode!=='tag';
+  $('pick3').hidden=mode!=='tag';
+  $('opponentChoice').hidden=story;
+  $('fight').textContent=story?'Begin Story':'Start Fight';
+  updateDifficulty();
+  show('select');
+}
+$('openSettings').onclick=()=>{renderBindings();show('settings')};
+$('settingsBack').onclick=$('selectBack').onclick=$('leave').onclick=()=>show('menu');
+$('changeFighters').onclick=()=>openSelection(gameMode);
+function updateStoryHelp() {
+  const milestones=storySeason===2?'Gensys at level 5 and Enigma at level 10.':
+    'Semmenelin at level 5 and Tyrone at level 10.';
+  $('storyHelp').textContent='Pick any fighter. All opponents are from Season '+storySeason+'. Face '+milestones;
+  for(const season of [1,2]) $('storySeason'+season).setAttribute('aria-pressed',season===storySeason);
+}
+for(const season of [1,2]){
+  $('storySeason'+season).onclick=()=>{
+    storySeason=season;
+    updateStoryHelp();
+  };
+}
+$('rosterSeason').onchange=renderRoster;
+function updateDifficulty() { $('difficulty').hidden=gameMode!=='story'&&$('mode').value==='human'; }
+$('mode').onchange=updateDifficulty;
+$('restore').onclick=()=>{prefs.bindings=defaults.map(b=>({...b}));waitingForKey=null;save();renderBindings()};
+function renderBindings() {
+  $('bindings').replaceChildren();
+  prefs.bindings.forEach((map,player)=>{
+    const group=document.createElement('fieldset');
+    const legend=document.createElement('legend');
+    legend.textContent='Player '+(player+1);
+    group.append(legend);
+    Object.entries(actions).forEach(([action,label])=>{
+      const row=document.createElement('div'), button=document.createElement('button');
+      row.className='row';
+      button.textContent=keyLabel(map[action]);
+      button.setAttribute('aria-label',label+' key for Player '+(player+1));
+      button.onclick=()=>{waitingForKey={player,action,button};button.textContent='Press a key'};
+      row.append(label,button);
+      group.append(row);
+    });
+    $('bindings').append(group);
+  });
+}
+function renderRoster() {
+  for(let i=0;i<4;i++){
+    const slot=gameMode==='tag'?['P1 Lead','P2 Lead','P1 Partner','P2 Partner'][i]:'P'+(i+1);
+    $('pick'+i).textContent=slot+' · '+(roster[selected[i]]?.name||'Random');
+    $('pick'+i).setAttribute('aria-pressed',pick===i);
+    $('pick'+i).onclick=()=>{pick=i;renderRoster()};
+  }
+  const season=gameMode==='story'?'all':$('rosterSeason').value;
+  $('roster').replaceChildren();
+  roster.forEach((fighter,i)=>{
+    if(season!=='all'&&Number(season)!==fighter.season) return;
+    const button=document.createElement('button'), portrait=document.createElement('canvas');
+    button.className='fighter';
+    button.setAttribute('aria-pressed',selected[pick]===i);
+    portrait.width=96; portrait.height=96;
+    portrait.setAttribute('aria-hidden','true');
+    const alternate=gameMode==='arcade'&&pick===1&&selected[0]===i;
+    const sprite=(alternate?mirrorSprites:sprites)[i];
+    if(sprite) paintHead(portrait.getContext('2d'),sprite,fighter.id);
+    button.append(portrait,fighter.name);
+    const item=projectilesByFighter[fighter.id];
+    button.title=[fighter.faction,fighter.id==='ranelle'?'gunner':fighter.style,item?.label].filter(Boolean).join(' · ');
+    button.onclick=()=>{
+      if(gameMode==='tag'){
+        const partner=pick^2;
+        if(selected[partner]===i) selected[partner]=selected[pick];
+      }
+      selected[pick]=i;
+      renderRoster();
+      $('roster').querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+    };
+    $('roster').append(button);
+  });
+  if(gameMode!=='tag'){
+    const random=document.createElement('button'), silhouette=document.createElement('span');
+    random.className='fighter';
+    random.setAttribute('aria-pressed',selected[pick]===null);
+    random.title='Choose from the full roster when the match or story starts';
+    silhouette.className='random-portrait';
+    silhouette.setAttribute('aria-hidden','true');
+    silhouette.textContent='?';
+    random.append(silhouette,'Random');
+    random.onclick=()=>{
+      selected[pick]=null;
+      renderRoster();
+      $('roster').lastElementChild.focus({preventScroll:true});
+    };
+    $('roster').append(random);
+  }
+}
+addEventListener('keydown',event=>{
+  if(waitingForKey) {
+    if(event.code==='Tab') return;
+    event.preventDefault();
+    const {player,action}=waitingForKey;
+    if(event.code!=='Escape') {
+      const old=prefs.bindings[player][action];
+      for(const map of prefs.bindings) for(const name of Object.keys(map)){
+        if(map[name]===event.code) map[name]=old;
+      }
+      prefs.bindings[player][action]=event.code;
+      save();
+    }
+    waitingForKey=null; renderBindings(); return;
+  }
+  if(!acceptsFightInput()||event.ctrlKey||event.metaKey||event.altKey) return;
+  if(!prefs.bindings.some((map,player)=>!match.cpuSeats[player]&&Object.values(map).includes(event.code))) return;
+  event.preventDefault();
+  if(event.repeat||held.has(event.code)) return;
+  tapped.add(event.code);
+  held.add(event.code);
+  prefs.bindings.forEach((keys,player)=>{
+    if(match.cpuSeats[player]) return;
+    if(event.code===keys.left) registerDirectionTap(player,-1,event.timeStamp,'keyboard');
+    if(event.code===keys.right) registerDirectionTap(player,1,event.timeStamp,'keyboard');
+    if(event.code===keys.jump) registerJumpTap(player,event.timeStamp,'keyboard');
+  });
+});
+addEventListener('keyup',event=>held.delete(event.code));
+addEventListener('blur',clearGameInput);
+const touchLabels={lp:'L Punch',mp:'M Punch',hp:'H Punch',lk:'L Kick',mk:'M Kick',hk:'H Kick',
+  throw:'Shot',super:'Super 1',super2:'Super 2',tag:'Tag',teamSuper:'Team Super'};
+let touchDetected=Boolean(navigator.userAgentData?.mobile||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||
+    (navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform))||
+    matchMedia('(pointer: coarse)').matches);
+function updateTouchOverlay(){
+  const showTouch=prefs.touchPreference==='on'||(prefs.touchPreference==='auto'&&touchDetected);
+  document.documentElement.classList.toggle('touch-device',showTouch);
+}
+$('touchPreference').value=prefs.touchPreference;
+$('touchPreference').onchange=()=>{
+  prefs.touchPreference=$('touchPreference').value;
+  clearGameInput(); updateTouchOverlay(); save();
+};
+updateTouchOverlay();
+addEventListener('pointerdown',event=>{
+  if(event.pointerType==='touch'&&!touchDetected){
+    touchDetected=true;
+    updateTouchOverlay();
+  }
+});
+const joystick=$('joystick'), knob=$('joystickKnob');
+function resetJoystick(){
+  joystickPointer=null;
+  for(const action of ['left','right','jump','guard']) touchHeld.delete(action);
+  knob.style.removeProperty('--stick-x');knob.style.removeProperty('--stick-y');
+}
+function moveJoystick(event){
+  if(event.pointerId!==joystickPointer) return;
+  const circle=joystick.getBoundingClientRect(), radius=circle.width*.33;
+  const x=event.clientX-circle.left-circle.width/2,y=event.clientY-circle.top-circle.height/2;
+  const threshold=radius*.4, limit=Math.max(1,Math.hypot(x,y)/radius);
+  knob.style.setProperty('--stick-x',x/limit+'px');knob.style.setProperty('--stick-y',y/limit+'px');
+  for(const [action,active] of Object.entries({left:x< -threshold,right:x>threshold,jump:y< -threshold,guard:y>threshold})){
+    if(active&&!touchHeld.has(action)){
+      if(action==='left'||action==='right') registerDirectionTap(0,action==='left'?-1:1,event.timeStamp,'touch');
+      if(action==='jump'){
+        tapped.add('touch:jump');
+        registerJumpTap(0,event.timeStamp,'touch');
+      }
+    }
+    if(active) touchHeld.add(action);
+    else touchHeld.delete(action);
+  }
+}
+joystick.onpointerdown=event=>{
+  if(!acceptsFightInput()||match.cpuSeats[0]||joystickPointer!==null) return;
+  event.preventDefault();joystickPointer=event.pointerId;
+  joystick.setPointerCapture(event.pointerId);moveJoystick(event);
+};
+joystick.onpointermove=moveJoystick;
+joystick.onpointerup=joystick.onpointercancel=joystick.onlostpointercapture=event=>{
+  if(event.pointerId===joystickPointer) resetJoystick();
+};
+for(const [action,label] of Object.entries(touchLabels)){
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=label;
+  button.dataset.action=action;
+  button.setAttribute('aria-label',actions[action]||label);
+  button.onpointerdown=event=>{
+    event.preventDefault();
+    if(!acceptsFightInput()||match.cpuSeats[0]||touchHeld.has(action)) return;
+    button.setPointerCapture(event.pointerId);
+    touchPointers.set(event.pointerId,{action,button});
+    touchHeld.add(action);
+    button.classList.add('is-held');
+    tapped.add('touch:'+action);
+  };
+  button.onlostpointercapture=button.onpointerup=button.onpointercancel=event=>{
+    if(touchPointers.get(event.pointerId)?.button!==button) return;
+    touchPointers.delete(event.pointerId);
+    touchHeld.delete(action);
+    button.classList.remove('is-held');
+  };
+  $('touchAction').append(button);
+}
+
+const floor=390, maxSkill=100, fixedStep=1000/60;
+const comboWindow=54, comboDisplay=85, projectileDamageScale=.6;
+let battleVisualTime=0;
+const attacks={
+  lp:{wind:4,live:4,rest:9,damage:5,reach:-26},
+  mp:{wind:7,live:5,rest:13,damage:8,reach:-12},
+  hp:{wind:12,live:6,rest:21,damage:13,reach:0},
+  lk:{wind:6,live:4,rest:12,damage:6,reach:-15,kick:true,low:true},
+  mk:{wind:9,live:5,rest:17,damage:10,reach:7,kick:true},
+  hk:{wind:15,live:6,rest:25,damage:15,reach:19,kick:true},
+  throw:{wind:14,live:1,rest:26,damage:9},
+  super:{wind:11,live:12,rest:28,damage:45,reach:74}
+};
+const gunnerAttacks={
+  lp:{damage:5,wind:5,rest:12},
+  mp:{shot:{shape:'grenade',speed:8,color:'#f8b163',vy:-5,gravity:.27,blast:58},damage:10,wind:12,rest:21},
+  hp:{shot:{shape:'missile',speed:11,color:'#ff8878',blast:50},damage:13,wind:17,rest:25}
+};
+const fighterAttacks={
+  karl:{lp:{wind:4,rest:9},mp:{wind:6,rest:13},hp:{wind:9,rest:18}},
+  farrol:{hp:{damage:16,reach:15},hk:{damage:17,rest:27}},
+  denni:{hp:{wind:16,damage:18,reach:22},throw:{wind:20,rest:28,damage:12}}
+};
+for(const {id,attacks} of seasonTwoFighters){
+  if(attacks) fighterAttacks[id]=attacks;
+}
+const equipment={
+  bryan:{blade:'spear',label:'Spear',grip:[.70,.43],length:116,color:'#c7d9e9'},
+  ranelle:{blade:'knife',label:'Knife',grip:[.53,.43],length:39,color:'#dce8ef'},
+  yokan:{blade:'ice',label:'Ice Sword',grip:[.72,.41],length:105,color:'#9be6ff'},
+  roj:{blade:'holy',label:'Holy Swords',grip:[.74,.42],length:89,color:'#fff2a9'}
+};
+function equipmentFor(f,move) {
+  const gear=equipment[f.id];
+  if(!gear||!move||move.kick) return null;
+  if(f.id==='ranelle'){
+    const shot=move.shot?.shape||(move.type==='super'?'missile':null);
+    if(shot) return {...gear,blade:shot==='bullet'?'gun':shot==='missile'?'launcher':'grenade'};
+    return gear;
+  }
+  if(f.id==='roj'&&move.type==='throw') return gear;
+  if(move.shot) return null;
+  return gear;
+}
+const signatureSupers={
+  tyrone:{name:'Abyssal Rupture',wind:24,beats:[{at:24,damage:34,shot:'nebula',speed:11}],recovery:33},
+  semmenelin:{name:'Dragonfire',wind:25,beats:[25,33,41].map(at=>({at,damage:10,shot:'dragonfire',speed:11})),recovery:36},
+  bryan:{name:'Giant Spear Bash',wind:18,range:245,beats:[{at:18,damage:45}]},
+  jonneil:{name:'Million Punch',wind:12,range:149,beats:[12,17,22,27,32,37].map(at=>({at,damage:7.5}))},
+  ranelle:{name:'Kirov Missile',wind:17,beats:[{at:17,damage:45,shot:'missile',speed:17}]},
+  dice:{name:'Shadow Party',wind:17,range:270,beats:[17,27,37].map(at=>({at,damage:15}))},
+  yokan:{name:'Frozenehart',wind:13,range:200,beats:[{at:13,freeze:true},{at:33,damage:45}]},
+  roj:{name:'Apocalypsis',wind:15,range:225,beats:[{at:29,damage:45}]},
+  hope:{name:'Nebula',wind:14,beats:[{at:14,damage:45,shot:'nebula',speed:11}]},
+  fallan:{name:'Apollo',wind:18,range:640,beats:[18,28,38].map((at,i)=>({at,damage:15,color:['#ff855b','#7fe3ff','#bc9aff'][i]}))},
+  bennedic:{name:'Morph',wind:11,beats:[]},
+  lynne:{name:'Rapid Cards',wind:11,beats:[11,15,19,23,27,31].map(at=>({at,damage:7.5,shot:'card',speed:17}))},
+  clephus:{name:'Black Dominion',wind:22,range:360,beats:[{at:22,damage:44}]},
+  karl:{name:'Razor Rush',wind:10,range:152,beats:[10,14,18,22,26,30].map(at=>({at,damage:7.5}))},
+  farrol:{name:'Groundbreaker',wind:21,range:179,beats:[{at:21,damage:46}]},
+  mohammad:{name:'Astral Verdict',wind:19,range:475,beats:[19,27,35].map(at=>({at,damage:15}))},
+  denni:{name:'Hydraulic Overdrive',wind:24,range:223,beats:[{at:24,damage:46}]}
+};
+let lastStage=-1;
+let fighters=[], shots=[], sparks=[], match, tick=0, roundOver=0, accumulator=0, previous=0, shake=0, roundClock=0;
+let superEffects=[];
+const dragonBoss={id:'semmenelin',name:'SEMMENELIN',season:1,style:'Dragon',speed:2.3,power:1.05,reach:148,accent:'#ff9f54',maxHp:125};
+const tyroneBoss={id:'tyrone',name:'TYRONE',season:1,style:'Morpher',speed:3.2,power:1.06,reach:132,accent:'#ce85ff',maxHp:116};
+const tyroneDemon={...tyroneBoss,style:'Demon',speed:3.0,power:1.22,reach:151,maxHp:125};
+for(const {id,super:signature} of seasonTwoFighters) signatureSupers[id]=signature;
+const storyLength=10;
+const storyBosses={
+  1:[
+    {level:4,id:'semmenelin',opponent:'semmenelin',arena:lairIndex},
+    {level:9,id:'tyrone',opponent:'tyrone',arena:hadesIndex}
+  ],
+  2:[
+    {level:4,id:'gensys',arena:arenaCatalog.findIndex(([id])=>id==='lambda-industrial'),hp:115},
+    {level:8,id:'asmodeus',arena:lairIndex,hp:120},
+    {level:9,id:'enigma',arena:hadesIndex,hp:126}
+  ]
+};
+const koTicks=76;
+let campaign=null;
+function sampleWithoutReplacement(pool,count) {
+  const sample=[];
+  for(let i=0;i<count;i++){
+    const choice=Math.floor(Math.random()*pool.length);
+    sample.push(pool.splice(choice,1)[0]);
+  }
+  return sample;
+}
+function startGame() {
+  matchPicks=selected.map(index=>index===null?Math.floor(Math.random()*roster.length):index);
+  const player=matchPicks[0];
+  campaign=null;
+  if(gameMode==='story'){
+    const season=storySeason;
+    const bosses=storyBosses[season];
+    const bossIds=new Set(bosses.map(({id})=>id));
+    const candidates=roster.flatMap((fighter,index)=>
+      index!==player&&fighter.season===season&&!bossIds.has(fighter.id)?[index]:[]
+    );
+    const regularLevels=storyLength-bosses.length;
+    const route=sampleWithoutReplacement(candidates,regularLevels);
+    const availableArenas=originalArenas.filter(arena=>!bosses.some(boss=>boss.arena===arena));
+    const shivaStops=season===2?shivaArenas:[];
+    const classicStops=sampleWithoutReplacement(availableArenas,regularLevels-shivaStops.length);
+    const arenas=sampleWithoutReplacement([...classicStops,...shivaStops],regularLevels);
+    for(const {level,id,opponent,arena} of bosses){
+      const rosterIndex=opponent??roster.findIndex(fighter=>fighter.id===id&&fighter.season===season);
+      route.splice(level,0,rosterIndex);
+      arenas.splice(level,0,arena);
+    }
+    campaign={level:0,player,route,arenas,season,bosses};
+  }
+  if(campaign) showStoryPage('opening');
+  else freshMatch();
+}
+function showStoryPage(chapter) {
+  const index=campaign.player, fighter=roster[index];
+  const story=fighterStories[fighter.id][chapter], ending=chapter==='ending';
+  $('storyChapter').textContent=fighterDisplayName(fighter)+(ending?' · Epilogue':' · Prologue');
+  $('storyTitle').textContent=story.title;
+  const copy=$('storyCopy');
+  copy.replaceChildren(...story.paragraphs.map(text=>{
+    const paragraph=document.createElement('p');
+    paragraph.textContent=text;
+    return paragraph;
+  }));
+  const context=document.createElement('p');
+  context.className='hint';
+  context.textContent=campaign.season===2?
+    (ending?'Enigma has fallen, and the breach is closing.':'Enigma is opening a breach through the Gate of Hades.'):
+    (ending?'Tyrone has fallen, and the Gate of Hades is sealed.':'Beyond Semmenelin’s mountain, Tyrone is gathering power at the Gate of Hades.');
+  if(fighter.id==='tyrone'&&campaign.season===1){
+    context.textContent=ending?'Tyrone has defeated the shadow that stole his form.':'A second Tyrone is waiting at the Gate of Hades.';
+  }
+  if(fighter.id==='enigma'&&campaign.season===2){
+    context.textContent=ending?'Enigma’s reflection recedes into the breach.':'An echo of Enigma is drawing power through the Gate of Hades.';
+  }
+  if(fighter.season!==campaign.season){
+    copy.replaceChildren(context);
+    $('storyTitle').textContent=ending?'The Final Battle':'The Road Ahead';
+  } else if(ending) copy.prepend(context);
+  else copy.append(context);
+  const portrait=$('storyPortrait'), pen=portrait.getContext('2d'), sprite=sprites[index];
+  pen.clearRect(0,0,portrait.width,portrait.height);
+  const height=Math.min(portrait.height,portrait.width*sprite.h/sprite.w);
+  paintSprite(pen,sprite,portrait.width/2,portrait.height,height);
+  const continueButton=$('storyContinue');
+  continueButton.textContent=ending?'Finish Story':'Continue to Level 1';
+  continueButton.onclick=ending?()=>show('menu'):freshMatch;
+  $('storyBack').hidden=ending;
+  $('storyBack').onclick=()=>show('menu');
+  show('storyPage');
+}
+function freshMatch() {
+  const base=$('ai').selectedIndex;
+  const storyLevel=campaign?.level??null;
+  const story=storyLevel!==null;
+  const mode=$('mode').value;
+  const cpuSeats=[!story&&mode==='spectate',story||mode==='cpu'||mode==='spectate'];
+  const difficulty=story?Math.min(2,base+Math.floor(storyLevel/4)):base;
+  const tag=gameMode==='tag';
+  const indices=story?[campaign.player,campaign.route[storyLevel]]:matchPicks.slice(0,2);
+  const stage=story?campaign.arenas[storyLevel]:null;
+  const rounds=indices[1]==='tyrone'?2:prefs.rounds;
+  const lineups=indices.map((index,seat)=>tag?[index,matchPicks[seat+2]]:[index]);
+  match={round:1,total:rounds,score:[0,0],cpuSeats,difficulty,storyLevel,lineups,stage,tag};
+  beginRound();
+}
+function beginRound() {
+  if(match.storyLevel===null){
+    const options=normalArenas.filter(i=>i!==lastStage);
+    match.stage=options[Math.floor(Math.random()*options.length)];
+  }
+  lastStage=match.stage;
+  const {lineups,storyLevel}=match;
+  match.teams=lineups.map((lineup,i)=>lineup.map(index=>createFighter(index,i)));
+  match.lastTag=[-Infinity,-Infinity];
+  fighters=match.teams.map(team=>team[0]);
+  refreshMatchFighters();
+  shots=[]; sparks=[]; superEffects=[]; shake=0; roundOver=0; accumulator=0; roundClock=99*60;
+  $('result').hidden=true;
+  $('touch').hidden=match.cpuSeats[0];
+  $('storyProgress').hidden=storyLevel===null;
+  if(storyLevel!==null){
+    const final=storyLevel===storyLength-1;
+    $('storyProgress').textContent='Season '+campaign.season+' · Level '+(storyLevel+1)+' / '+storyLength+
+      ' · '+(final?'Final Boss · ':'')+fighterDisplayName(fighters[1]);
+  }
+  show('battle');
+  document.activeElement?.blur();
+  makeHud(); updateHud();
+  const opening=()=>startDialogue(['intro','intro'],()=>{
+    clearGameInput();
+    accumulator=0;
+  });
+  if(match.round===1) showMatchup(opening);
+  else if(match.round===2&&(fighters[1].demon||fighters[1].ascended||fighters[1].giant)){
+    startBossTransformation(fighters[1],opening);
+  }
+  else opening();
+}
+function startBossTransformation(boss,onDone){
+  const scene=$('bossScene');
+  const quote=$('bossSceneLine');
+  const lines=finalBossLines[boss.id];
+  $('bossSceneName').textContent=fighterDisplayName(boss);
+  quote.textContent='“'+(lines[fighters[0]?.id]??lines.default)+'”';
+  quote.setAttribute('aria-hidden',!reducedMotion.matches);
+  scene.hidden=false;
+  interlude={
+    duration:reducedMotion.matches?1850:3300,elapsed:0,boss,revealed:reducedMotion.matches,
+    onDone:()=>{scene.hidden=true;onDone()}
+  };
+  sfx('super');
+}
+function createFighter(index,seat){
+  const demon=index==='tyrone'&&match.round>=2;
+  const entry=index==='semmenelin'?dragonBoss:index==='tyrone'?(demon?tyroneDemon:tyroneBoss):roster[index];
+  const campaignBoss=seat===1&&match?.storyLevel!=null?campaign?.bosses.find(boss=>boss.level===match.storyLevel):null;
+  const maxHp=campaignBoss?.hp??entry.maxHp??100;
+  const ascended=campaignBoss?.id==='enigma'&&entry.id==='enigma'&&match.round>=2;
+  const giant=campaignBoss?.id==='gensys'&&entry.id==='gensys'&&match.round>=2;
+  const formStats=giant?{speed:2.55,power:1.28,reach:164}:{};
+  return {...entry,...formStats,index,seat,demon,ascended,giant,x:seat?693:267,y:floor,face:seat?-1:1,vx:0,vy:0,dashTicks:0,dashDirection:0,
+    maxHp,hp:maxHp,skill:0,stun:0,guard:false,blockUntil:0,move:null,cpuGuard:0,element:0,beastUntil:0,jumpStartedAt:null,combo:null};
+}
+function refreshMatchFighters(){
+  const [first,second]=fighters;
+  second.alternate=first.id===second.id;
+  second.accent=second.alternate?mirrorAccent:(roster[second.index]?.accent||second.accent);
+  const pad=$('touchAction');
+  pad.querySelector('[data-action="throw"]').disabled=!projectilesByFighter[first.id];
+  pad.querySelector('[data-action="tag"]').hidden=!match.tag;
+  const hasPartner=match.tag&&!!livingPartner(0);
+  pad.querySelector('[data-action="tag"]').disabled=!hasPartner;
+  pad.querySelector('[data-action="teamSuper"]').hidden=!match.tag;
+  pad.querySelector('[data-action="teamSuper"]').disabled=!hasPartner||first.skill<maxSkill;
+}
+function livingPartner(seat){
+  return match.teams[seat].find(fighter=>fighter!==fighters[seat]&&fighter.hp>0);
+}
+$('fight').onclick=startGame;
+function showMatchup(onDone){
+  fighters.forEach((fighter,seat)=>{
+    const {sprite}=fighterArtwork(fighter), card=$('portrait'+seat), pen=card.getContext('2d');
+    const height=Math.min(296,316*sprite.h/sprite.w);
+    pen.clearRect(0,0,card.width,card.height);
+    pen.save();pen.translate(card.width/2,card.height);
+    pen.scale(seat?-1:1,1);
+    paintSprite(pen,sprite,0,0,height);
+    pen.restore();
+    $('matchupName'+seat).textContent=match.teams[seat].map(fighterDisplayName).join(' & ');
+  });
+  $('matchup').hidden=false;
+  interlude={duration:2100,elapsed:0,onDone:()=>{
+    $('matchup').hidden=true;
+    onDone();
+  }};
+}
+const lastDialogue=new Map();
+const speechDuration=1750;
+function startDialogue(roles,onDone) {
+  const entries=fighters.map((fighter,seat)=>{
+    const role=roles[seat], opponent=fighters[1-seat];
+    const lines=role==='draw'?drawDialogue:fighterDialogue[fighter.id][role];
+    const special=relationLine(fighter,opponent,role);
+    const key=[fighter.id,opponent.id,role].join(':');
+    const prior=lastDialogue.get(key);
+    const choices=lines.filter(line=>line!==prior);
+    const line=special&&(role==='intro'||prior!==special)?special:choices[Math.floor(Math.random()*choices.length)];
+    lastDialogue.set(key,line);
+    const side=fighters[0].id===fighters[1].id?' · P'+(seat+1):'';
+    return {fighter,name:fighter.name+side,line};
+  });
+  dialogue={entries,seat:0,elapsed:0,onDone};
+  showSpeech();
+}
+function showSpeech() {
+  const entry=dialogue.entries[dialogue.seat];
+  $('speechName').textContent=entry.name;
+  $('speechText').textContent='“'+entry.line+'”';
+  $('speechBubble').hidden=false;
+  positionSpeech();
+}
+function positionSpeech() {
+  const {fighter}=dialogue.entries[dialogue.seat], bubble=$('speechBubble');
+  const arenaWidth=canvas.clientWidth, arenaHeight=canvas.clientHeight;
+  const {sprite,height}=fighterArtwork(fighter);
+  const pose=fighter.knockout?downPose(fighter,sprite,height,floor):fighter;
+  const anchorX=arenaWidth*pose.x/canvas.width;
+  const finish=roundArtwork(fighter,fighter.roundPose?.role,height,fighter.roundPose?.form);
+  const headHeight=pose.height??finish?.height??height;
+  const anchorY=arenaHeight*(pose.y-headHeight)/canvas.height;
+  const left=Math.max(6,Math.min(arenaWidth-bubble.offsetWidth-6,anchorX-bubble.offsetWidth/2));
+  bubble.style.left=left+'px';
+  bubble.style.top=Math.max(4,anchorY-bubble.offsetHeight-9)+'px';
+  bubble.style.setProperty('--tail',Math.max(11,Math.min(bubble.offsetWidth-11,anchorX-left))+'px');
+}
+function advanceDialogue(elapsed) {
+  dialogue.elapsed+=elapsed;
+  if(dialogue.elapsed<speechDuration){positionSpeech();return}
+  dialogue.seat++;
+  if(dialogue.seat<dialogue.entries.length){
+    dialogue.elapsed-=speechDuration;
+    showSpeech();
+    return;
+  }
+  const {onDone}=dialogue;
+  dialogue=null;
+  $('speechBubble').hidden=true;
+  onDone();
+}
+function renderControls() {
+  const guide=$('helpControls');
+  const fighter=roster.find(entry=>entry.id===$('helpFighter').value);
+  guide.replaceChildren();
+  if(fighter?.season===2){
+    const overview=document.createElement('p');
+    overview.className='hint';
+    overview.textContent=fighter.desc;
+    guide.append(overview);
+  }
+  prefs.bindings.forEach((keys,i)=>{
+    const heading=document.createElement('h3'), section=document.createElement('section');
+    heading.textContent='Player '+(i+1)+(fighter?' · '+fighterDisplayName(fighter):'');
+    section.append(heading);
+    const groups=document.createElement('div');
+    groups.className='control-groups';
+    const makeRows=names=>names.map(action=>[actions[action],keyLabel(keys[action])]);
+    const gear=equipment[fighter?.id];
+    const punchNames=fighter?.id==='ranelle'?['Knife Slash','Grenade','Missile']:
+      ['Low','Medium','High'].map(level=>level+' '+(gear?.label||'Punch'));
+    if(lowMeleeNames[fighter?.id]) punchNames[0]=lowMeleeNames[fighter.id];
+    const projectile=projectilesByFighter[fighter?.id];
+    const superName=fighter?superMoveName(fighter):'Super';
+    const alternateName=fighter?superMoveName(fighter,2):'Super 2';
+    const specials=[[superName,keyLabel(keys.hp)+' + '+keyLabel(keys.hk)],
+      [alternateName,keyLabel(keys.mp)+' + '+keyLabel(keys.mk)]];
+    specials.push(['Switch fighter (Tag Team)',keyLabel(keys.tag)],
+      ['Team Super (Tag Team)',keyLabel(keys.lk)+' + '+keyLabel(keys.lp)]);
+    if(projectile) specials.unshift([projectile.label,keyLabel(keys.throw)]);
+    else if(!fighter) specials.unshift(['Projectile (select fighters)',keyLabel(keys.throw)]);
+    for(const [title,rows] of [
+      ['Movement & Guard',[...makeRows(['left','right','jump','guard']),['High Jump',keyLabel(keys.jump)+' twice']]],
+      [gear?'Weapon Attacks':'Punches',['lp','mp','hp'].map((action,i)=>[punchNames[i],keyLabel(keys[action])])],
+      [fighter?.id==='ranelle'?'Knife Attacks':'Kicks',fighter?.id==='ranelle'?
+        ['lk','mk','hk'].map((action,i)=>[['Low','Medium','High'][i]+' Knife Slash',keyLabel(keys[action])]):
+        makeRows(['lk','mk','hk'])],['Specials',specials]
+    ]){
+      const card=document.createElement('div'), label=document.createElement('h4'), list=document.createElement('ul');
+      card.className='control-group'; label.textContent=title; card.append(label,list); groups.append(card);
+      for(const [name,key] of rows){
+        const row=document.createElement('li'), keycap=document.createElement('kbd');
+        keycap.textContent=key; row.append(name,keycap); list.append(row);
+      }
+      if(title==='Movement & Guard'){
+        const note=document.createElement('small'); note.className='hint';
+        note.textContent='Double-tap Left or Right to dash.';
+        card.append(note);
+      } else if(title==='Specials'){
+        const note=document.createElement('small'); note.className='hint';
+        note.textContent=fighter?.id==='bennedic'?'100 Skill · 5 seconds of double damage':'Super requires 100 Skill';
+        card.append(note);
+      }
+    }
+    section.append(groups); guide.append(section);
+  });
+}
+function makeHud() {
+  fighters.forEach((f,i)=>{
+    const hud=$('hud'+i);
+    hud.innerHTML='<strong></strong><div class="meter health" role="meter" aria-label="Health" aria-valuemin="0"><i></i></div>'+
+      '<div class="meter skill" role="meter" aria-label="Skill" aria-valuemin="0"><i></i></div><span class="hint" hidden></span>';
+    const name=hud.querySelector('strong');
+    name.textContent=f.name+(f.demon?' · DEMON':'')+(match.cpuSeats[i]?' · CPU':'');
+    name.style.color=f.alternate?mirrorAccent:'';
+    if(match.tag){
+      const partner=match.teams[i].find(fighter=>fighter!==f);
+      const reserve=document.createElement('div');
+      reserve.className='reserve-hud';
+      reserve.innerHTML='<span></span><div class="meter health" role="meter" aria-label="Reserve health" aria-valuemin="0"><i></i></div>';
+      reserve.querySelector('span').textContent=fighterDisplayName(partner);
+      hud.append(reserve);
+    }
+  });
+}
+function updateHealthBar(meter,fighter){
+  const health=fighter.hp/fighter.maxHp;
+  meter.firstElementChild.style.width=(100*health)+'%';
+  meter.classList.toggle('warning',health<.5&&health>.2);
+  meter.classList.toggle('critical',health<=.2);
+  meter.setAttribute('aria-valuenow',Math.ceil(fighter.hp));
+  meter.setAttribute('aria-valuemax',fighter.maxHp);
+}
+function updateHud() {
+  $('round').textContent=match.score.join(' : ')+' Time: '+Math.ceil(roundClock/60)+'s\n'+arenaCatalog[match.stage][1];
+  if(match.tag){
+    $('touchAction').querySelector('[data-action="teamSuper"]').disabled=fighters[0].skill<maxSkill||!livingPartner(0);
+  }
+  fighters.forEach((f,i)=>{
+    const hud=$('hud'+i), skill=hud.querySelector('.meter.skill');
+    updateHealthBar(hud.querySelector('.meter.health'),f);
+    skill.firstElementChild.style.width=(100*f.skill/maxSkill)+'%';
+    skill.classList.toggle('full',f.skill===maxSkill);
+    skill.setAttribute('aria-valuenow',f.skill);
+    skill.setAttribute('aria-valuemax',maxSkill);
+    const morph=hud.querySelector('.hint');
+    morph.hidden=f.beastUntil<=tick;
+    morph.textContent=morph.hidden?'':(f.id==='tyrone'?'DEMON ':'BEAST ')+((f.beastUntil-tick)/60).toFixed(1)+'s';
+    if(match.tag) updateHealthBar(hud.querySelector('.reserve-hud .meter'),match.teams[i].find(fighter=>fighter!==f));
+    const label=$('combo'+i);
+    const count=f.combo?.count??0;
+    label.hidden=count<2||tick-f.combo.last>=comboDisplay;
+    const text=count+' HITS';
+    if(!label.hidden&&label.textContent!==text) label.textContent=text;
+  });
+}
+function playerInput(i) {
+  const map=prefs.bindings[i], input={};
+  input.dash=dashRequests[i];
+  input.highJump=highJumpRequests[i];
+  dashRequests[i]=0;
+  highJumpRequests[i]=false;
+  for(const [action,key] of Object.entries(map)){
+    const down=held.has(key)||(i===0&&touchHeld.has(action));
+    input[action]=['left','right','guard'].includes(action)?down:tapped.has(key)||(i===0&&tapped.has('touch:'+action));
+  }
+  const chord=(punch,kick,touch)=>
+    (input[punch]&&(held.has(map[kick])||input[kick]))||
+    (input[kick]&&held.has(map[punch]))||(i===0&&tapped.has('touch:'+touch));
+  input.super=chord('hp','hk','super');
+  input.super2=chord('mp','mk','super2');
+  input.teamSuper=chord('lp','lk','teamSuper');
+  return input;
+}
+function cpuInput(f,enemy) {
+  const dx=enemy.x-f.x, distance=Math.abs(dx), level=match.difficulty;
+  const threat=enemy.move&&distance<enemy.reach+30||shots.some(shot=>shot.owner!==f&&Math.abs(shot.x-f.x)<105);
+  const reserve=match.tag?livingPartner(f.seat):null;
+  if(reserve&&canTag(f.seat)&&f.hp<32&&reserve.hp>f.hp+18&&distance>140) return {tag:true};
+  const boss=f.id==='semmenelin';
+  const guardChance=(boss?[.018,.040,.075]:[.035,.11,.24])[level];
+  if(threat&&!f.move&&Math.random()<guardChance) f.cpuGuard=boss?9:12+level*4;
+  if(f.cpuGuard>0){f.cpuGuard--;return {guard:true}}
+  const approach=distance>f.reach-20, roll=Math.random();
+  if(boss){
+    return {
+      left:approach&&dx<0,right:approach&&dx>0,
+      lp:!approach&&roll<.041,hp:!approach&&roll>.97,
+      throw:distance>=155&&roll<.022,
+      super:f.skill===maxSkill&&distance<640&&roll<.055
+    };
+  }
+  if(f.index==='tyrone'){
+    return {
+      left:approach&&dx<0,right:approach&&dx>0,
+      lp:!approach&&roll<.036,hk:!approach&&roll>.966,
+      super:distance<560&&f.skill===maxSkill&&roll<.045,
+      throw:distance>180&&distance<620&&f.demon&&roll>.98
+    };
+  }
+  return {
+    left:approach&&dx<0,right:approach&&dx>0,
+    lp:!approach&&roll<.025+level*.012,
+    mp:f.id==='ranelle'&&distance<430&&roll>.97,
+    hp:f.id==='ranelle'&&distance>150&&roll>.95&&roll<=.97,
+    lk:!approach&&roll>.90&&roll<.925,
+    mk:!approach&&roll>.925&&roll<.95,
+    hk:!approach&&roll>.975-level*.006,
+    throw:distance>150&&distance<620&&roll<.014+level*.006,
+    super:distance<(fighterSuper(f,1)?.range||380)&&f.skill===maxSkill&&roll<.035,
+    super2:distance<(fighterSuper(f,2)?.range||380)&&f.skill===maxSkill&&roll>=.035&&roll<.065,
+    teamSuper:!!reserve&&f.skill===maxSkill&&distance<305&&roll<.03,
+    jump:distance>170&&roll>.997
+  };
+}
+const tyroneMorph={name:'Demon Morph',wind:13,beats:[],morph:true};
+const teamSuper={name:'Tag Team Super',wind:17,range:265,targeted:true,effect:'team',
+  beats:[{at:17,damage:26},{at:31,damage:28}],recovery:23};
+function fighterSuper(fighter,slot=1) {
+  if(slot===3) return teamSuper;
+  if(slot===2) return secondSupers[fighter.id];
+  if(fighter.id==='tyrone'&&fighter.index!=='tyrone') return tyroneMorph;
+  return signatureSupers[fighter.id];
+}
+function superMoveName(fighter,slot=1) {
+  return fighterSuper(fighter,slot)?.name||(fighter.id==='miguel'?'Ranger Strike':'Super '+slot);
+}
+function startMove(f,type,slot=1,partner=null) {
+  const variant=f.id==='ranelle'?gunnerAttacks[type]:fighterAttacks[f.id]?.[type];
+  f.move={type,t:0,hit:false,...attacks[type],...variant};
+  if(type==='throw') f.move.shot=projectilesByFighter[f.id];
+  if(f.id==='semmenelin'&&type==='throw'){
+    Object.assign(f.move,{wind:31,rest:47,damage:9,shot:{shape:'dragonfire',speed:10,color:f.accent}});
+  }
+  if(f.id==='tyrone'&&type==='throw'){
+    Object.assign(f.move,{wind:26,rest:34,damage:9,shot:{shape:'nebula',speed:10,color:f.accent}});
+  }
+  if(type==='super') {
+    f.move.slot=slot;
+    if(slot===3) f.move.teamPartner=partner;
+    const signature=fighterSuper(f,slot);
+    if(signature) {
+      const lastBeat=signature.beats.at(-1)?.at??signature.wind;
+      Object.assign(f.move,{signature,wind:signature.wind,live:lastBeat-signature.wind+5,rest:signature.recovery??18});
+    }
+    if(signature?.morph||(f.id==='bennedic'&&slot===1)) Object.assign(f.move,{morph:true,live:1,rest:10});
+    f.skill=0;
+    f.superCall={text:superMoveName(f,slot)+'!',until:tick+66};
+    const look=superLook(f,slot);
+    superEffects.push({kind:'cast',fighter:f,slot,style:look.style,color:look.color,when:tick,duration:Math.max(22,f.move.wind+5)});
+  }
+  f.move.animation=attackAnimation(f,f.move,equipmentFor(f,f.move));
+  if(f.move.animation==='cast'&&f.move.type!=='super'){
+    f.move.castColor=f.alternate?mirrorAccent:(f.move.shot?.colors?.[f.element%f.move.shot.colors.length]??f.move.shot?.color??f.accent);
+  }
+  sfx(type==='super'?'super':f.move.shot?'throw':f.move.damage>=10?'heavy':'light');
+}
+function awardSkill(f,amount) { f.skill=Math.min(maxSkill,f.skill+amount); }
+function blocksFrom(defender,sourceX) {
+  return defender.guard&&(sourceX-defender.x)*defender.face>=0;
+}
+function damage(attacker,defender,amount,sourceX,type,{projectile=false}={}) {
+  if(defender.hp<=0) return;
+  const blocked=blocksFrom(defender,sourceX);
+  if(blocked){
+    attacker.combo=null;
+    defender.blockUntil=tick+9;
+  }
+  else if(amount>0){
+    const previous=attacker.combo;
+    const chain=previous?.defender===defender&&tick-previous.last<=comboWindow;
+    attacker.combo={defender,last:tick,count:chain?previous.count+1:1};
+    defender.combo=null;
+  }
+  if(type==='super'){
+    superEffects.push({kind:blocked?'block':'impact',fighter:defender,color:blocked?'#83d9ff':attacker.accent,when:tick,duration:25});
+    if(blocked){
+      awardSkill(defender,projectile?6:10);
+      sfx('guard');
+      return;
+    }
+  }
+  defender.hp=Math.max(0,defender.hp-(blocked?Math.max(1,amount*.15):amount));
+  defender.stun=blocked?5:type==='super'?22:11;
+  defender.dashTicks=0;
+  defender.vx=Math.sign(defender.x-sourceX)*(blocked?2:7);
+  if(!blocked) {
+    defender.move=null;
+    defender.guard=false;
+    defender.hitAt=tick;
+  }
+  if(type!=='super') awardSkill(attacker,projectile?(blocked?3:8):(blocked?5:12));
+  awardSkill(defender,projectile?(blocked?6:5):(blocked?10:8));
+  burst(defender.x,defender.y-76,blocked?'#83d9ff':attacker.accent);
+  sfx(blocked?'guard':'hit');
+  shake=blocked?2:type==='super'?13:6;
+}
+function applyProjectileHit(shot,enemy,fromX) {
+  const amount=shot.damage*(shot.special?1:shot.owner.power*projectileDamageScale);
+  damage(shot.owner,enemy,amount,fromX,shot.special?'super':'throw',{projectile:true});
+}
+function burst(x,y,color) {
+  for(let i=0;i<12;i++) sparks.push({x,y,color,vx:(Math.random()-.5)*12,vy:(Math.random()-.75)*9,life:17});
+}
+function moveFighter(f,input,enemy) {
+  if(f.frozenUntil>tick) {
+    f.guard=false;
+    f.dashTicks=0;
+    f.vx=0;
+    f.vy=0;
+    return;
+  }
+  if(!f.move) f.face=f.x<=enemy.x?1:-1;
+  if(f.stun>0) f.stun--;
+  const partner=match?.tag&&input.teamSuper?livingPartner(f.seat):null;
+  const superSlot=f.skill===maxSkill?(partner?3:input.super2?2:input.super?1:0):0;
+  const chordAttacks=superSlot===3?['lp','lk']:superSlot===2?['mp','mk']:['hp','hk'];
+  // Allow the second key of a super chord to arrive during the first strike's startup.
+  if(superSlot&&f.move&&chordAttacks.includes(f.move.type)&&f.move.t<f.move.wind) {
+    startMove(f,'super',superSlot,partner);
+  }
+  f.guard=!!input.guard&&!f.move&&(f.stun===0||f.guard)&&f.y>=floor;
+  const walk=(input.right?1:0)-(input.left?1:0);
+  if(!f.stun&&!f.move&&!f.guard) {
+    f.vx=walk*f.speed;
+    if(input.highJump&&f.jumpStartedAt!==null&&tick-f.jumpStartedAt<=jumpBoostTicks&&f.vy<0){
+      const clearance=f.beastUntil>tick?249:216;
+      f.vy=-Math.max(-f.vy,Math.sqrt(Math.max(0,2*gravity*(f.y-clearance))));
+      f.jumpStartedAt=null;
+      sfx('jump');
+    } else if((input.jump||input.highJump)&&f.y>=floor){
+      const clearance=f.beastUntil>tick?249:216;
+      f.vy=input.highJump?-Math.sqrt(2*gravity*(floor-clearance)):-12;
+      f.jumpStartedAt=input.highJump?null:tick;
+      sfx('jump');
+    }
+    if(superSlot) startMove(f,'super',superSlot,partner);
+    else if(input.throw&&(projectilesByFighter[f.id]||f.id==='semmenelin'||f.id==='tyrone')) startMove(f,'throw');
+    else {
+      const strike=['hk','hp','mk','mp','lk','lp'].find(type=>input[type]);
+      if(strike) startMove(f,strike);
+    }
+    if(f.move||f.vy<0||f.y<floor||(walk&&walk!==f.dashDirection)) f.dashTicks=0;
+    if(input.dash&&!f.dashTicks&&!f.move&&f.vy>=0&&f.y>=floor){
+      f.dashTicks=dashDuration;
+      f.dashDirection=input.dash;
+      sfx('dash');
+    }
+    if(f.dashTicks>0){
+      f.vx=f.dashDirection*f.speed*(1.75+1.2*f.dashTicks/dashDuration);
+      f.dashTicks--;
+    }
+  } else {
+    f.dashTicks=0;
+    f.vx*=.75;
+  }
+  const move=f.move, ahead=(enemy.x-f.x)*f.face;
+  if(move?.slot===3&&ahead>86&&move.t<34) f.vx=f.face*Math.min(9,ahead-86);
+  if(move?.type==='super'&&move.slot===1&&!move.morph&&ahead>45){
+    if(!move.signature&&move.t>=move.wind&&move.t<move.wind+7) f.vx=f.face*9;
+    if(f.id==='roj'&&move.t>=15&&move.t<29) f.vx=f.face*Math.min(26,ahead-45);
+    if(f.id==='jonneil'&&move.t>=12&&move.t<37) f.vx=f.face*Math.min(7,ahead-45);
+    if(f.id==='karl'&&move.t<30) f.vx=f.face*Math.min(19,ahead-45);
+  }
+  if(move?.type==='super'&&move.slot===1&&f.id==='roj'&&move.t===15&&f.y>=floor) f.vy=-9;
+  f.x=Math.max(42,Math.min(918,f.x+f.vx));
+  if(f.x===42||f.x===918) f.dashTicks=0;
+  f.vy+=gravity;
+  f.y=Math.min(floor,f.y+f.vy);
+  if(f.y===floor){f.vy=0;f.jumpStartedAt=null;}
+}
+function advanceMove(f,enemy) {
+  if(!f.move) return;
+  const move=f.move;
+  move.t++;
+  if(move.morph&&move.t===move.wind){
+    f.beastUntil=tick+300;
+    emitSignature(f,f,superLook(f,move.slot),30);
+    burst(f.x,f.y-100,f.accent);
+    shake=8;
+  }
+  if(move.signature&&!move.morph) resolveSignatureBeat(f,enemy,move);
+  if(move.type==='super'&&!move.signature&&move.t===move.wind){
+    emitSignature(f,f,superLook(f,move.slot));
+  }
+  if(move.shot&&move.t===move.wind){
+    const style=move.shot;
+    const signatureColor=style.colors?style.colors[f.element++%style.colors.length]:style.color;
+    const color=f.alternate?mirrorAccent:signatureColor;
+    const origin=weaponShotOrigin(f);
+    if(spellProjectiles.has(style.shape)||origin.artX!=null) emitSpellRelease(f,origin,style.shape,color,false);
+    shots.push({...style,color,damage:move.damage,owner:f,...origin,vx:f.face*style.speed,life:85,age:0});
+  }
+  const ahead=(enemy.x-f.x)*f.face;
+  const reach=f.reach+(move.reach||0);
+  if(!move.morph&&!move.signature&&!move.shot&&!move.hit&&move.t>=move.wind&&move.t<move.wind+move.live&&ahead>=0&&ahead<reach&&Math.abs(f.y-enemy.y)<(move.low?40:78)){
+    move.hit=true;
+    const multiplier=move.type==='super'?1:f.power*(f.beastUntil>tick?2:1);
+    damage(f,enemy,move.damage*multiplier,f.x,move.type);
+  }
+  if(move.t>=move.wind+move.live+move.rest) f.move=null;
+}
+function resolveSignatureBeat(f,enemy,move) {
+  const beat=move.signature.beats.find(item=>item.at===move.t);
+  if(!beat||enemy.hp<=0) return;
+  const look=superLook(f,move.slot,beat.color);
+  const color=look.color;
+  const ahead=(enemy.x-f.x)*f.face;
+  const inReach=ahead>=0&&ahead<=move.signature.range&&Math.abs(f.y-enemy.y)<(f.id==='roj'?130:92);
+  if(beat.shot){
+    const origin=weaponShotOrigin(f);
+    emitSpellRelease(f,origin,beat.shot,color,true);
+    shots.push({shape:beat.shot,color,style:look.style,special:true,owner:f,damage:beat.damage,
+      ...origin,vx:f.face*beat.speed,life:90,age:0});
+    return;
+  }
+  if(beat.freeze){
+    if(!inReach) return;
+    if(blocksFrom(enemy,f.x)){
+      damage(f,enemy,0,f.x,'super');
+      return;
+    }
+    enemy.frozenUntil=tick+24;
+    enemy.move=null;
+    enemy.guard=false;
+    move.frozenTarget=enemy;
+    emitSignature(f,enemy,{style:'freeze',color},24);
+    burst(enemy.x,enemy.y-92,'#a8eaff');
+    return;
+  }
+  const targeted=(move.signature.targeted||(move.slot===1&&['dice','fallan','yokan','clephus','mohammad'].includes(f.id)))&&inReach;
+  emitSignature(f,targeted?enemy:f,look);
+  if(f.id==='yokan'&&move.slot===1&&move.frozenTarget!==enemy) return;
+  if(inReach||move.frozenTarget===enemy) damage(f,enemy,beat.damage,f.x,'super');
+}
+function finishRound() {
+  const [a,b]=fighters;
+  const healthShare=team=>team.reduce((sum,f)=>sum+f.hp,0)/team.reduce((sum,f)=>sum+f.maxHp,0);
+  const difference=healthShare(match.teams[0])-healthShare(match.teams[1]);
+  const winner=difference>0?0:difference<0?1:-1;
+  if(winner>=0) match.score[winner]++;
+  const [p1,p2]=match.score;
+  if(match.round===match.total&&p1===p2) match.total++;
+  fighters.forEach(fighter=>{fighter.combo=null});
+  updateHud();
+  const roles=winner===0?['win','loss']:winner===1?['loss','win']:['draw','draw'];
+  shots=[]; sparks=[]; superEffects=[]; shake=0;
+  fighters.forEach((fighter,seat)=>{
+    fighter.roundPose={role:roles[seat],progress:0,startY:fighter.y,form:fighter.knockout?.form??battleForm(fighter)};
+    fighter.move=null; fighter.guard=false; fighter.stun=0; fighter.frozenUntil=0;
+    fighter.superCall=null;
+    fighter.vx=0; fighter.vy=0;
+    fighter.dashTicks=0;
+  });
+  interlude={duration:1500,elapsed:0,pose:true,onDone:()=>{
+    startDialogue(roles,()=>announceRound(winner));
+  }};
+}
+function fighterDisplayName(fighter){
+  return fighter.name[0]+fighter.name.slice(1).toLowerCase();
+}
+function announceRound(winner) {
+  const banner=$('roundAnnouncement');
+  banner.textContent=winner<0?'Round Draw':fighterDisplayName(fighters[winner])+' Wins!';
+  banner.hidden=false;
+  interlude={duration:1300,elapsed:0,onDone:()=>{
+    banner.hidden=true;
+    if(match.round<match.total){ match.round++; beginRound(); }
+    else finishMatch();
+  }};
+}
+function advanceInterlude(elapsed) {
+  interlude.elapsed+=elapsed;
+  const progress=Math.min(1,interlude.elapsed/interlude.duration);
+  if(interlude.pose){
+    fighters.forEach(fighter=>{
+      fighter.roundPose.progress=progress;
+      if(!fighter.knockout){
+        fighter.y=fighter.roundPose.startY+(floor-fighter.roundPose.startY)*Math.min(1,progress*3);
+      }
+    });
+  }
+  if(interlude.boss&&!interlude.revealed&&progress>=.46){
+    interlude.revealed=true;
+    $('bossSceneLine').setAttribute('aria-hidden',false);
+    sfx('heavy');
+  }
+  if(progress===1){
+    const {onDone}=interlude;
+    interlude=null;
+    onDone();
+  }
+}
+function finishMatch() {
+  const [p1,p2]=match.score;
+  const {storyLevel}=match;
+  if(storyLevel!==null&&p1>p2&&storyLevel<storyLength-1){
+    campaign.level=storyLevel+1;
+    freshMatch();
+    return;
+  }
+  if(storyLevel===storyLength-1&&p1>p2){
+    showStoryPage('ending');
+    return;
+  }
+  $('resultTitle').textContent=match.teams[p1>p2?0:1].map(fighterDisplayName).join(' & ')+' Win'+(match.tag?'':'s')+' the Match';
+  $('score').textContent='Score '+p1+'–'+p2;
+  $('advance').textContent='Rematch';
+  $('advance').onclick=freshMatch;
+  if(storyLevel!==null) {
+    $('resultTitle').textContent='Story Match Lost';
+    $('advance').textContent='Retry Level';
+  }
+  $('result').hidden=false;
+  $('advance').focus({preventScroll:true});
+}
+function startKnockout(f,opponent) {
+  const direction=Math.sign(f.vx)||Math.sign(f.x-opponent.x)||-f.face;
+  const {sprite,height}=fighterArtwork(f);
+  const room=direction>0?canvas.width-f.x:f.x;
+  const fallDirection=room<height? -direction:direction;
+  const end=Math.max(8,Math.min(canvas.width-8,f.x+direction*300));
+  f.knockout={x:f.x,y:f.y,end,fallDirection,progress:0,form:battleForm(f),sprite,height};
+  f.move=null;
+  f.guard=false;
+}
+function advanceKnockouts() {
+  for(const f of fighters){
+    const ko=f.knockout;
+    if(!ko) continue;
+    const progress=1-roundOver/koTicks, slide=progress*(2-progress);
+    const airborne=Math.min(1,progress/.72);
+    const lift=Math.sin(Math.PI*airborne)*76;
+    ko.progress=progress;
+    f.x=ko.x+(ko.end-ko.x)*slide;
+    f.y=ko.y+(floor-ko.y)*airborne-lift;
+  }
+}
+function canTag(seat){
+  const f=fighters[seat];
+  return match.tag&&livingPartner(seat)&&tick-match.lastTag[seat]>=90&&
+    f.hp>0&&!f.stun&&!f.move&&!(f.frozenUntil>tick)&&f.y>=floor;
+}
+function switchFighter(seat,forced=false){
+  const partner=livingPartner(seat), outgoing=fighters[seat];
+  if(!partner||(!forced&&!canTag(seat))) return false;
+  const opponent=fighters[1-seat];
+  const x=forced?Math.max(75,Math.min(885,opponent.x+(outgoing.x<opponent.x?-1:1)*220)):outgoing.x;
+  Object.assign(partner,{x,y:floor,face:x<=opponent.x?1:-1,vx:0,vy:0,move:null,guard:false,
+    stun:0,frozenUntil:0,dashTicks:0,dashDirection:0,cpuGuard:0,superCall:null,jumpStartedAt:null,hitAt:null,blockUntil:0,combo:null});
+  outgoing.combo=null;
+  opponent.combo=null;
+  jumpTaps[seat]=null;
+  highJumpRequests[seat]=false;
+  fighters[seat]=partner;
+  match.lastTag[seat]=tick;
+  burst(x,floor-45,partner.accent);
+  sfx('dash');
+  refreshMatchFighters();makeHud();updateHud();
+  return true;
+}
+function update() {
+  tick++;
+  superEffects=superEffects.filter(effect=>tick-effect.when<effect.duration);
+  if(roundOver){
+    roundOver--;
+    advanceKnockouts();
+    if(roundOver===0){
+      if(match.tag&&roundClock>0){
+        for(let seat=0;seat<2;seat++){
+          if(fighters[seat].hp<=0) switchFighter(seat,true);
+        }
+        if(fighters.every(fighter=>fighter.hp>0)) return;
+      }
+      finishRound();
+    }
+    return;
+  }
+  const inputs=fighters.map((fighter,seat)=>match.cpuSeats[seat]?cpuInput(fighter,fighters[1-seat]):playerInput(seat));
+  if(match.tag){
+    inputs.forEach((input,seat)=>{
+      if(input.tag&&switchFighter(seat)) inputs[seat]={};
+    });
+  }
+  const [a,b]=fighters;
+  moveFighter(a,inputs[0],b);
+  moveFighter(b,inputs[1],a);
+  if(Math.abs(a.y-b.y)<85&&Math.abs(a.x-b.x)<43){
+    const center=(a.x+b.x)/2, side=a.x<=b.x?1:-1;
+    a.x=Math.max(42,Math.min(918,center-22*side));
+    b.x=Math.max(42,Math.min(918,center+22*side));
+  }
+  advanceMove(a,b); advanceMove(b,a);
+  shots=shots.filter(shot=>{
+    const fromX=shot.age===0?shot.fromX??shot.x:shot.x;
+    if(shot.age===shot.returnAt){
+      shot.vx=-shot.vx;
+      shot.hitThisLeg=false;
+    }
+    shot.x+=shot.vx;shot.age++;
+    if(shot.gravity){shot.vy+=shot.gravity;shot.y+=shot.vy;}
+    const enemy=fighters[1-shot.owner.seat];
+    const phased=!shot.special&&enemy.id==='ivanov'&&enemy.dashTicks>0;
+    const contact=!phased&&enemy.x>Math.min(fromX,shot.x)-29&&enemy.x<Math.max(fromX,shot.x)+29&&
+      shot.y<enemy.y-18&&shot.y>enemy.y-153;
+    if(shot.returnAt){
+      if(contact&&!shot.hitThisLeg){
+        applyProjectileHit(shot,enemy,fromX);
+        shot.hitThisLeg=true;
+      }
+      return shot.age<shot.returnAt*2;
+    }
+    if(contact||shot.y>=floor){
+      if(shot.blast) burst(shot.x,Math.min(floor,shot.y),shot.color);
+      if(contact||(!phased&&shot.blast&&Math.hypot(shot.x-enemy.x,shot.y-enemy.y)<shot.blast)){
+        applyProjectileHit(shot,enemy,fromX);
+        if(shot.special&&!blocksFrom(enemy,fromX)){
+          emitSignature(shot.owner,enemy,{style:shot.style,color:shot.color},24,Math.sign(shot.vx));
+        }
+      }
+      return false;
+    }
+    return --shot.life>0&&shot.x>-30&&shot.x<990;
+  });
+  sparks=sparks.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.32;return --p.life>0});
+  roundClock--;
+  if(a.hp<=0||b.hp<=0){
+    if(a.hp<=0) startKnockout(a,b);
+    if(b.hp<=0) startKnockout(b,a);
+    roundOver=koTicks;
+    shake=0;
+    sfx('ko');
+  } else if(roundClock===0) roundOver=22;
+  updateHud();
+}
+const headCenters={
+  bryan:.55,jonneil:.56,ranelle:.51,yokan:.54,dice:.50,roj:.54,hope:.53,miguel:.64,bennedic:.62,
+  fallan:.44,lynne:.46,clephus:.59,karl:.66,farrol:.57,mohammad:.46,denni:.56,
+  chastity:.52,alberto:.48,aljo:.52,robin:.47,carlson:.53,fred:.52,ivanov:.48,honey:.48,
+  lovejoy:.49,asmodeus:.66,gensys:.55,enigma:.69,tyrone:.66,pandemic:.55
+};
+function paintHead(pen,sprite,id) {
+  const size=Math.min(sprite.w,sprite.h*.26);
+  const offset=Math.max(0,Math.min(sprite.w-size,sprite.w*(headCenters[id]??.5)-size*.5));
+  const top=({dice:.075,asmodeus:.035,tyrone:.025}[id]??0)*sprite.h;
+  pen.drawImage(sprite.image,sprite.x+offset,sprite.y+top,size,size,0,0,96,96);
+}
+function paintSprite(pen,sprite,cx,feet,height) {
+  const width=height*sprite.w/sprite.h;
+  pen.drawImage(sprite.image,sprite.x,sprite.y,sprite.w,sprite.h,cx-width/2,feet-height,width,height);
+}
+const poseRows=[0,.18,.32,.46,.59,.72,.86,1];
+const poseColumns=[0,.23,.5,.77,1];
+const strikeRows=[0,.18,.31,.41,.55,.65,.78,.9,1];
+const strikeColumns=[0,.26,.5,.67,.84,1];
+function deformFighter(f,u,v,pose) {
+  const edge=Math.abs(u-.5)*2, forward=u>=.5?1:-1;
+  const leg=Math.max(0,(v-.53)/.47), upper=1-v;
+  const arm=Math.max(0,1-Math.abs(v-.38)/.23)*edge;
+  const move=f.move;
+  let dx=0,dy=0;
+  if(f.roundPose&&!f.knockout){
+    const {role,progress}=f.roundPose;
+    const strength=Math.min(1,progress*2.2);
+    if(role==='win'){
+      const pump=Math.sin(progress*Math.PI)*12;
+      return [upper*strength*-9+forward*arm*strength*13,
+        -arm*strength*(56+pump)-upper*strength*8];
+    }
+    if(role==='loss') return [upper*strength*26,upper*strength*47+arm*strength*12];
+    return [0,upper*strength*12];
+  }
+  if(f.hp<=0) return [0,0];
+  if(f.stun&&!f.guard&&f.hitAt!=null){
+    const recoil=Math.max(0,1-(tick-f.hitAt)/13);
+    dx-=upper*recoil*32+arm*recoil*19;
+    dy+=upper*recoil*14+arm*recoil*14;
+  } else if(f.y<floor){
+    const bend=f.vy<-3?15:f.vy>3?12:26;
+    dx+=forward*leg*(f.vy>3?4:14);
+    dy-=leg*(bend+forward*8);
+    dx+=arm*forward*8;
+    dy-=arm*9;
+  } else if(Math.abs(f.vx)>.8&&!f.guard&&!move&&!f.stun){
+    const stride=Math.sin(tick*.27)*Math.sign(f.vx*f.face);
+    dx+=stride*forward*(leg*21-arm*11);
+    dy-=Math.max(0,stride*forward)*leg*14;
+  }
+  if(f.guard){
+    dx-=upper*15;
+    dy+=upper*20;
+    dx+=arm*(forward===1?18:32);
+    dy-=arm*(forward===1?29:22);
+  }
+  const [attackX,attackY]=attackOffset(pose,u,v);
+  return [dx+attackX,dy+attackY];
+}
+function paintPoseTriangle(pen,sprite,height,origin,horizontal,vertical) {
+  const sx=horizontal.x-origin.x,sy=vertical.y-origin.y;
+  const a=(horizontal.tx-origin.tx)/sx,b=(horizontal.ty-origin.ty)/sx;
+  const c=(vertical.tx-origin.tx)/sy,d=(vertical.ty-origin.ty)/sy;
+  pen.save();
+  pen.beginPath();
+  for(const point of [origin,horizontal,vertical]) {
+    const centerX=(origin.tx+horizontal.tx+vertical.tx)/3;
+    const centerY=(origin.ty+horizontal.ty+vertical.ty)/3;
+    pen.lineTo(point.tx+(point.tx-centerX)*.025,point.ty+(point.ty-centerY)*.025);
+  }
+  pen.closePath();pen.clip();
+  pen.transform(a,b,c,d,origin.tx-a*origin.x-c*origin.y,origin.ty-b*origin.x-d*origin.y);
+  paintSprite(pen,sprite,0,0,height);
+  pen.restore();
+}
+
+function paintAnimatedFighter(f,sprite,height,pose,pen=ctx) {
+  const width=height*sprite.w/sprite.h;
+  const columns=pose?strikeColumns:poseColumns;
+  const rows=pose?strikeRows:poseRows;
+  const kick=pose?.legAngle&&Math.abs(pose.legAngle)>.025;
+  if(kick){
+    // Rotate the leading leg as a separate piece to keep its boot and shin rigid.
+    const {hip,x,y,angle}=kickJoint(pose,width,height);
+    pen.save();
+    pen.translate(x,y);pen.rotate(angle);pen.translate(-hip.x,-hip.y);
+    pen.beginPath();pen.rect(0,-height*.47,width*.5,height*.47);pen.clip();
+    paintSprite(pen,sprite,0,0,height);
+    pen.restore();
+  }
+  const vertices=rows.map(v=>columns.map(u=>{
+    const x=(u-.5)*width,y=(v-1)*height;
+    const [dx,dy]=deformFighter(f,u,v,pose);
+    return {x,y,tx:x+dx,ty:y+dy};
+  }));
+  for(let row=0;row<vertices.length-1;row++) for(let col=0;col<columns.length-1;col++){
+    if(kick&&rows[row]>=.55&&columns[col]>=.5) continue;
+    const top=vertices[row],bottom=vertices[row+1];
+    paintPoseTriangle(pen,sprite,height,top[col],top[col+1],bottom[col]);
+    paintPoseTriangle(pen,sprite,height,bottom[col+1],bottom[col],top[col+1]);
+  }
+}
+function weaponPose(f,gear,sprite,height,pose=attackPose(f)) {
+  const move=f.move, [u,v]=gear.grip;
+  const width=sprite?height*sprite.w/sprite.h:95;
+  const [dx,dy]=deformFighter(f,u,v,pose);
+  const windup=Math.min(1,move.t/move.wind);
+  const follow=Math.min(1,Math.max(0,(move.t-move.wind)/Math.max(5,move.live+5)));
+  const firearm=gear.blade==='gun'||gear.blade==='launcher';
+  const peak=move.low?.44:move.type==='hp'||move.type==='hk'?-.5:-.12;
+  const angle=firearm?-.2*(1-windup)-Math.sin(follow*Math.PI)*.23:
+    gear.blade==='grenade'?-1.74+(windup+follow)*.95:
+    gear.blade==='spear'&&move.animation==='thrust'?peak-.35*(1-windup)+follow*.36:
+    peak-(1-windup)*1.58+follow*1.22;
+  return {x:(u-.5)*width+dx,y:(v-1)*height+dy,angle};
+}
+function weaponShotOrigin(f) {
+  const origin=projectilePhysicsOrigin(f);
+  const art=releaseArtwork(f);
+  if(!art) return origin;
+  const height=fighterArtwork(f).height;
+  const visual=actionReleasePoint(f,height,art);
+  const aligned=alignedProjectiles.has(shotShape(f.move));
+  // Keep shot collision on its original path while the art starts at the scaled sprite's hand.
+  const launch=aligned? actionReleasePoint(f,height,art,releaseHeightScale(art.id)):null;
+  const x=launch?.artX??origin.x;
+  const y=launch?Math.max(f.y-149,Math.min(f.y-28,launch.artY)):origin.y;
+  return {...origin,x,y,...visual,artOffsetX:visual.artX-x,artOffsetY:visual.artY-y};
+}
+function projectilePhysicsOrigin(f) {
+  if(f.id==='semmenelin') return {x:f.x+f.face*142,y:f.y-121,fromX:f.x+f.face*33};
+  const gear=equipmentFor(f,f.move);
+  const fromX=f.x+f.face*23;
+  if(f.id!=='ranelle'||!gear) return {x:f.x+f.face*38,y:f.y-80,fromX};
+  const animation=attackPose(f);
+  const pose=weaponPose(f,gear,sprites[f.index],206,animation);
+  const barrel=gear.blade==='gun'?43:gear.blade==='launcher'?67:9;
+  const x=pose.x+Math.cos(pose.angle)*barrel, y=pose.y+Math.sin(pose.angle)*barrel;
+  const lean=animation?.lean??0;
+  return {x:f.x+f.face*(x*Math.cos(lean)-y*Math.sin(lean)),
+    y:f.y+x*Math.sin(lean)+y*Math.cos(lean),fromX};
+}
+function drawEquipment(f,gear,sprite,height,animation) {
+  const move=f.move, pose=weaponPose(f,gear,sprite,height,animation);
+  const color=f.alternate?mirrorAccent:gear.color;
+  const elapsed=move.t-move.wind;
+  const firearm=gear.blade==='gun'||gear.blade==='launcher';
+  ctx.save();
+  ctx.translate(pose.x,pose.y);
+  if(elapsed>=0&&elapsed<move.live+4&&!firearm&&gear.blade!=='grenade'){
+    ctx.strokeStyle=color;
+    ctx.globalAlpha=.58*(1-elapsed/(move.live+4));
+    ctx.lineWidth=gear.blade==='knife'?4:8;
+    ctx.beginPath();ctx.arc(0,0,gear.length,pose.angle-.75,pose.angle+.18);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  ctx.rotate(pose.angle);
+  ctx.fillStyle=color;
+  ctx.strokeStyle='#121828';
+  ctx.lineWidth=3;
+  if(firearm) {
+    const launcher=gear.blade==='launcher', length=launcher?67:43, body=launcher?15:9;
+    ctx.fillStyle='#252e40';ctx.fillRect(-8,-body/2,length+5,body);
+    ctx.strokeRect(-8,-body/2,length+5,body);
+    ctx.fillStyle='#b7c6d7';ctx.fillRect(-3,-body/2,length-5,3);
+    ctx.fillStyle='#303747';ctx.fillRect(-3,2,10,15);
+    ctx.fillStyle='#8196ac';ctx.fillRect(length-9,-body/2-2,9,body+4);
+    if(elapsed>=0&&elapsed<4){
+      ctx.translate(length,0);ctx.fillStyle='#ffc969';paintStar(launcher?29:20,elapsed*.4);
+      ctx.fillStyle='#fff5c4';paintStar(10,0);
+    }
+  } else if(gear.blade==='grenade') {
+    if(elapsed<0){
+      ctx.fillStyle='#788a65';ctx.beginPath();ctx.arc(8,0,9,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#c2c4ac';ctx.fillRect(6,-12,6,5);
+    }
+  } else {
+    ctx.shadowColor=color;
+    ctx.shadowBlur=gear.blade==='holy'||gear.blade==='ice'?14:0;
+    const length=move.type==='super'&&gear.blade==='spear'?gear.length+34:gear.length;
+    if(gear.blade==='spear'){
+      ctx.fillStyle='#2a3645';ctx.fillRect(-49,-4,length+22,8);
+      ctx.fillStyle='#a58a61';ctx.fillRect(-47,-4,length+19,2);
+      ctx.translate(length-30,0);
+      ctx.fillStyle=color;paintBlade(33,10);
+    } else {
+      const width=gear.blade==='ice'?15:gear.blade==='holy'?9:6;
+      ctx.fillStyle='#222938';ctx.fillRect(-15,-4,19,8);
+      ctx.fillStyle=color;paintBlade(length,width);
+      ctx.fillRect(0,-width-4,5,(width+4)*2);
+      ctx.strokeStyle='#ffffffb3';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(8,0);ctx.lineTo(length-12,0);ctx.stroke();
+      if(gear.blade==='holy'){
+        ctx.translate(-12,-24);ctx.rotate(-.48);
+        ctx.globalAlpha=.8;paintBlade(length*.79,8);
+      }
+    }
+  }
+  ctx.restore();
+}
+function fighterArtwork(f){
+  const dragon=f.id==='semmenelin', beast=f.beastUntil>tick;
+  if(f.giant){
+    const sprite=actionSprite('base/gensys-giant',f.alternate);
+    if(sprite) return {sprite,height:310};
+  }
+  if(f.ascended) return {sprite:f.alternate?mirrorEnigmaRiftSprite:enigmaRiftSprite,height:236};
+  if(f.id==='tyrone'&&(f.demon||beast)) return {sprite:f.alternate?mirrorTyroneDemonSprite:tyroneDemonSprite,height:238};
+  if(f.index==='tyrone') return {sprite:f.alternate?mirrorSprites[roster.findIndex(fighter=>fighter.id==='tyrone')]:tyroneSprite,height:209};
+  const sprite=dragon?dragonSprite:beast?(f.alternate?mirrorBeastSprite:beastSprite):(f.alternate?mirrorSprites:sprites)[f.index];
+  return {sprite,height:dragon?263:beast?232:206};
+}
+function paintIdleFighter(f,sprite,height) {
+  if(!reducedMotion.matches){
+    const tempo=.0025+Math.min(.0018,Math.max(0,f.speed-2.5)*.00062);
+    const phase=battleVisualTime*tempo+f.seat*2.2+f.reach*.033;
+    const breath=Math.sin(phase);
+    const sway=Math.sin(phase*.64)*(.022+(f.speed>4?.012:0));
+    ctx.transform(1-breath*.013,0,sway,1+breath*.023,0,0);
+  }
+  paintSprite(ctx,sprite,0,0,height);
+}
+function drawTeamSupport(fighter) {
+  const move=fighter.move, partner=move?.teamPartner;
+  if(!partner||move.t>move.wind+move.live+8) return;
+  const {sprite,height}=fighterArtwork(partner);
+  const form=battleForm(partner);
+  const strike=actionSprite('low/'+form,partner.alternate)??punchFrames.get(illustratedPunchSets.has(form)?form+'-mp':form);
+  const position=Math.max(0,Math.min(1,(move.t-11)/20));
+  const x=Math.max(55,Math.min(canvas.width-55,fighter.x+fighter.face*(-113+position*207)));
+  const feet=Math.min(floor,fighter.y-Math.sin(position*Math.PI)*12);
+  ctx.save();
+  ctx.translate(x,feet);
+  ctx.scale(fighter.face,1);
+  ctx.globalAlpha=Math.min(1,(move.t+1)/6,Math.max(.12,(move.wind+move.live+8-move.t)/9));
+  ctx.shadowColor=partner.accent;
+  ctx.shadowBlur=reducedMotion.matches?0:12;
+  paintSprite(ctx,move.t>=14&&strike?strike:sprite,0,0,height*.92);
+  ctx.restore();
+}
+function drawFighter(f) {
+  ctx.fillStyle='#04050a91';
+  const dragon=f.id==='semmenelin';
+  const {sprite,height}=fighterArtwork(f);
+  const ko=f.knockout?downPose(f,sprite,height,floor):null;
+  if(f.dashTicks>0&&!reducedMotion.matches){
+    ctx.save();
+    ctx.strokeStyle=f.accent;ctx.globalAlpha=.45*f.dashTicks/dashDuration;
+    ctx.lineWidth=2;
+    for(let i=0;i<3;i++){
+      const y=f.y-38-i*24, x=f.x-f.dashDirection*(24+i*5);
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-f.dashDirection*(34+i*11),y);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  const ending=!ko&&roundArtwork(f,f.roundPose?.role,height,f.roundPose?.form);
+  const shadowWidth=ko?Math.max(25,ko.width*.45):ending&&f.roundPose.role==='loss'?
+    Math.max(26,ending.width*.37):(dragon?103:39);
+  ctx.beginPath();ctx.ellipse(ko?.x??f.x,floor+2,shadowWidth,dragon?12:8,0,0,Math.PI*2);ctx.fill();
+  if(ko){
+    ctx.save();
+    ctx.translate(ko.x,ko.y);
+    ctx.scale(ko.face,1);
+    paintSprite(ctx,ko.cel,0,0,ko.height);
+    ctx.restore();
+    return;
+  }
+  if(ending){
+    const progress=f.roundPose.progress;
+    const rise=f.roundPose.role==='win'&&!reducedMotion.matches?Math.sin(progress*Math.PI)*8:0;
+    ctx.save();
+    ctx.translate(f.x,f.y-rise);
+    ctx.scale(f.face,1);
+    paintSprite(ctx,ending.sprite,0,0,ending.height);
+    ctx.restore();
+    return;
+  }
+  ctx.save();
+  const animation=attackPose(f);
+  const gear=equipmentFor(f,f.move);
+  const guard=guardArtwork(f,height);
+  const action=activeActionSprite(f);
+  const punch=action?null:punchCel(f,gear);
+  const attacking=f.move&&f.move.t>=f.move.wind&&f.move.t<f.move.wind+f.move.live;
+  const bob=f.y===floor&&Math.abs(f.vx)>.8&&!reducedMotion.matches?Math.sin(tick*.13)*2.6:0;
+  const stance=f.roundPose;
+  const rise=stance?.role==='win'?Math.sin(stance.progress*Math.PI)*13:0;
+  ctx.translate(f.x,f.y+bob-rise);
+  ctx.scale(f.face,1);
+  const lean=stance?.role==='loss'?.22*stance.progress:stance?.role==='win'?-.13*stance.progress:0;
+  ctx.rotate(stance?lean:guard?0:f.stun?-.14:animation&&!punch&&!action?animation.lean:f.guard?-.09:f.y<floor?.10:0);
+  ctx.save();
+  if(f.id==='ivanov'&&f.dashTicks>0) ctx.globalAlpha=.46;
+  if(f.frozenUntil>tick){
+    paintSprite(ctx,sprite,0,0,height);
+  } else if(guard){
+    paintSprite(ctx,guard.sprite,guard.x,0,guard.height);
+  } else if(action&&!stance){
+    if(action.sprite){
+      const position=actionFootPose(f,height,action);
+      paintSprite(ctx,action.sprite,position.x,0,position.height);
+    } else paintSprite(ctx,sprite,0,0,height);
+  } else if(punch&&!stance){
+    drawPunchCel(f,sprite,height,punch);
+  } else if(!stance&&(f.move||f.guard||f.stun||f.y<floor)){
+    const cel=battleCel(f,sprite,height,animation);
+    ctx.drawImage(cel.image,-cel.pivot.x,-cel.pivot.y);
+  } else if(!stance&&Math.abs(f.vx)<=.8){
+    paintIdleFighter(f,sprite,height);
+  } else paintAnimatedFighter(f,sprite,height,animation);
+  ctx.restore();
+  if(f.frozenUntil>tick){
+    ctx.fillStyle='#a2e8ff49';ctx.strokeStyle='#c0f4ff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-54,0);ctx.lineTo(-63,-118);ctx.lineTo(-29,-196);
+    ctx.lineTo(27,-210);ctx.lineTo(57,-160);ctx.lineTo(65,-31);ctx.lineTo(41,0);
+    ctx.closePath();ctx.fill();ctx.stroke();
+  }
+  if(f.guard&&f.blockUntil>tick){
+    drawGuardImpact(f,height);
+  }
+  if(gear&&!action) drawEquipment(f,gear,sprite,height,animation);
+  if(dragon&&!action&&f.move&&(f.move.shot||f.move.signature)){
+    const charge=Math.min(1,f.move.t/f.move.wind);
+    ctx.save();ctx.translate(142,-121);ctx.fillStyle='#ffbe6a';
+    ctx.shadowColor='#ff5633';ctx.shadowBlur=22;
+    paintStar(7+charge*13,tick*.1);
+    ctx.restore();
+  }
+  if(f.move?.animation==='cast'&&f.move.t<f.move.wind){
+    if(action?.phase==='release') drawArtCharge(f,height,action);
+    else drawHandCharge(f,sprite,height,animation);
+  }
+  if(attacking&&action?.phase==='low'){
+    drawLowActionFlash(f,height);
+  } else if(attacking&&f.id==='carlson'&&!f.move.kick&&f.move.type!=='super'){
+    drawWhip(f.move.t-f.move.wind, f.reach+(f.move.reach||0));
+  } else if(attacking&&f.id==='karl'&&!f.move.kick&&f.move.type!=='super'){
+    drawClawTrails(1);
+  } else if(attacking&&!action&&!punch&&!gear&&!f.move.shot&&!f.move.signature){
+    drawStrikeTrace(f,sprite,height,animation);
+  }
+  ctx.restore();
+}
+function drawClawTrails(opacity, offset=0) {
+  ctx.save();
+  ctx.translate(offset,0);
+  ctx.strokeStyle='#e8f3ff';
+  ctx.globalAlpha*=opacity;
+  ctx.lineWidth=4;
+  for(let i=0;i<3;i++){
+    ctx.beginPath();ctx.moveTo(25+i*9,-153);ctx.quadraticCurveTo(82+i*9,-136,100+i*9,-78);ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawWhip(age,length) {
+  ctx.save();
+  ctx.strokeStyle='#ffc57b';
+  ctx.lineWidth=4;
+  const tipY=-111+age*5;
+  ctx.beginPath();
+  ctx.moveTo(31,-116);
+  ctx.bezierCurveTo(length*.43,-154+age*13,length*.75,-81-age*5,length,tipY);
+  ctx.stroke();
+  ctx.restore();
+}
+function drawShot(shot) {
+  const transition=Math.max(0,1-shot.age/6);
+  ctx.save();
+  ctx.translate(shot.x+(shot.artOffsetX??0)*transition,shot.y+(shot.artOffsetY??0)*transition);
+  ctx.scale(Math.sign(shot.vx),1);
+  ctx.fillStyle=ctx.strokeStyle=shot.color;ctx.shadowColor=shot.color;ctx.shadowBlur=12;
+  if(shot.special) drawPoweredShot(shot);
+  if(drawProjectileIcon(shot)){ctx.restore();return;}
+  if(shot.shape==='shadow'&&shot.owner.id==='dice'){
+    drawShadowProjectile(shot);
+  } else if(shot.shape==='spore'){
+    for(let i=0;i<5;i++){
+      const angle=shot.age*.22+i*Math.PI*2/5;
+      ctx.beginPath();ctx.arc(Math.cos(angle)*8,Math.sin(angle)*8,3.8,0,Math.PI*2);ctx.fill();
+    }
+  } else if(shot.shape==='boomerang'){
+    ctx.rotate(shot.age*.42);
+    ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-15,-8);ctx.quadraticCurveTo(-4,-12,12,13);
+    ctx.quadraticCurveTo(7,0,12,-13);ctx.stroke();
+  } else if(shot.shape==='beam'||shot.shape==='laser'){
+    const length=shot.shape==='laser'?62:48;
+    ctx.fillRect(-length*.62,-3,length,6);ctx.fillStyle='#fff';ctx.fillRect(-length*.46,-1,length*.75,2);
+  } else if(shot.shape==='halo'){
+    ctx.lineWidth=4;
+    ctx.beginPath();ctx.ellipse(0,0,13+Math.sin(shot.age*.28)*4,22,-.27,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=1.5;ctx.strokeStyle='#edfcff';
+    ctx.beginPath();ctx.ellipse(0,0,9,17,-.27,0,Math.PI*2);ctx.stroke();
+  } else if(shot.shape==='wave'){
+    ctx.lineWidth=4;
+    ctx.beginPath();ctx.ellipse(-4,0,15,24,0,-1.4,1.4);ctx.stroke();
+  } else if(shot.shape==='packet'){
+    ctx.rotate(shot.age*.18);
+    ctx.strokeRect(-11,-11,22,22);ctx.fillRect(-5,-5,10,10);
+  } else if(shot.shape==='bullet'){
+    ctx.fillRect(-14,-2,23,4);
+  } else if(shot.shape==='missile'){
+    const length=shot.special?29:10;
+    ctx.fillRect(-length,-(shot.special?8:4),length*2,shot.special?16:8);
+    ctx.fillStyle='#ffc86b';ctx.fillRect(-length-18,-3,18,6);
+    ctx.beginPath();ctx.moveTo(-length,0);ctx.lineTo(-length-9,-13);ctx.lineTo(-length+9,-7);ctx.fill();
+  } else if(shot.shape==='rune'){
+    ctx.save();ctx.rotate(shot.age*.15);ctx.strokeRect(-9,-9,18,18);paintStar(11,Math.PI/4);ctx.restore();
+  } else if(shot.shape==='piston'){
+    ctx.fillRect(-19,-4,22,8);ctx.fillStyle='#313b49';ctx.fillRect(0,-10,13,20);
+    ctx.strokeRect(0,-10,13,20);
+  } else if(shot.shape==='dragonfire'){
+    ctx.fillStyle='#ff733b';ctx.beginPath();ctx.moveTo(-41,0);
+    ctx.quadraticCurveTo(-5,-23,19,0);ctx.quadraticCurveTo(-5,23,-41,0);ctx.fill();
+    ctx.fillStyle='#ffe2a0';ctx.beginPath();ctx.ellipse(4,0,15,7,0,0,Math.PI*2);ctx.fill();
+  } else if(shot.shape==='nebula'){
+    paintStar(16+Math.sin(shot.age*.3)*4,shot.age*.15);
+  } else if(shot.shape==='grenade'){
+    ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();
+  } else if(shot.shape==='arrow'){
+    ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,0);ctx.lineTo(18,0);ctx.lineTo(10,-5);ctx.moveTo(18,0);ctx.lineTo(10,5);ctx.stroke();
+  } else if(shot.shape==='holy'){
+    ctx.beginPath();ctx.moveTo(-22,0);ctx.lineTo(-6,-5);ctx.lineTo(0,-15);ctx.lineTo(6,-5);
+    ctx.lineTo(22,0);ctx.lineTo(6,5);ctx.lineTo(0,15);ctx.lineTo(-6,5);ctx.closePath();ctx.fill();
+  } else if(shot.shape==='card'){
+    ctx.rotate(shot.age*.23);ctx.fillRect(-9,-13,18,26);ctx.fillStyle='#662847';ctx.fillRect(-3,-4,6,8);
+  } else if(shot.shape==='star'){
+    ctx.rotate(shot.age*.29);ctx.beginPath();
+    for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?5:16;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}
+    ctx.closePath();ctx.fill();
+  } else {
+    const orb=ctx.createRadialGradient(1,0,1,0,0,shot.shape==='shadow'?22:16);
+    orb.addColorStop(0,shot.shape==='shadow'?'#160a30':'#fff0cf');
+    orb.addColorStop(.65,shot.color);orb.addColorStop(1,'transparent');
+    ctx.fillStyle=orb;ctx.fillRect(-22,-22,44,44);
+  }
+  ctx.restore();
+}
+function paintStar(radius,angle) {
+  ctx.save();ctx.rotate(angle);ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const a=i*Math.PI/5,r=i%2?radius*.37:radius;
+    ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+  }
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+function paintBlade(length,width) {
+  ctx.beginPath();ctx.moveTo(-18,-3);ctx.lineTo(0,-3);ctx.lineTo(0,-width);
+  ctx.lineTo(length-20,-width*.55);ctx.lineTo(length,0);
+  ctx.lineTo(length-20,width*.55);ctx.lineTo(0,width);ctx.lineTo(0,3);
+  ctx.lineTo(-18,3);ctx.closePath();ctx.fill();
+}
+function drawSuperPattern(style,progress) {
+  const extent=28+progress*120;
+  ctx.lineWidth=5;
+  if(style==='team'){
+    for(let i=-1;i<=1;i+=2){
+      ctx.save();
+      ctx.rotate(i*(.58-progress*.24));
+      ctx.beginPath();ctx.ellipse(0,0,extent+48,extent*.43,0,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle='#fff1bc';
+    paintStar(extent*.44,progress*.9);
+  } else if(style==='rings'||style==='sigil'){
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.ellipse(0,0,extent+24*i,extent*.65+i*13,i*Math.PI/3,0,Math.PI*2);
+      ctx.stroke();
+    }
+    if(style==='sigil') paintStar(extent*.75,progress*2);
+  } else if(style==='grid'){
+    for(let i=-2;i<=2;i++){
+      const size=13+progress*16;
+      ctx.strokeRect(i*27-size/2,Math.abs(i)*15-extent*.66,size,size);
+      ctx.strokeRect(i*27-size/2,extent*.52-Math.abs(i)*9,size,size);
+    }
+  } else if(style==='tendrils'){
+    for(let i=-2;i<=2;i++){
+      ctx.beginPath();ctx.moveTo(15,i*12);
+      ctx.quadraticCurveTo(extent*.39,i*27+progress*23,extent+48,i*15);
+      ctx.quadraticCurveTo(extent+60,i*15-12,extent+50,i*15-16);
+      ctx.stroke();
+    }
+  } else if(style==='whip'){
+    ctx.translate(0,91);
+    drawWhip(progress*12,155+progress*139);
+  } else if(style==='driver'){
+    ctx.fillRect(28,-11,43+extent,22);
+    ctx.fillRect(66+extent,-27,42,54);
+  } else if(style==='flame'){
+    for(let i=-2;i<=2;i++){
+      ctx.save();ctx.translate(i*36,72);ctx.rotate(i*.18);
+      paintBlade(46+extent,14);ctx.rotate(-Math.PI/2);paintBlade(44+extent,18);ctx.restore();
+    }
+  } else if(style==='rift'){
+    const aperture=18+progress*54;
+    ctx.fillStyle='#140e2b';
+    ctx.beginPath();ctx.ellipse(0,0,aperture,97+progress*36,.29,0,Math.PI*2);
+    ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(23,-122);ctx.lineTo(-2,-22);ctx.lineTo(5,14);ctx.lineTo(-28,119);ctx.stroke();
+  } else {
+    ctx.translate(70,0);
+    paintStar(13+extent*.37,progress);
+  }
+}
+function separateSuperCallouts(labels) {
+  if(labels.length<2) return;
+  const [a,b]=labels;
+  const height=44;
+  if(Math.abs(a.x-b.x)>=a.halfWidth+b.halfWidth||Math.abs(a.y-b.y)>=height) return;
+  const top=a.y<=b.y?a:b, bottom=top===a?b:a;
+  const middle=Math.max(34+height/2,Math.min(canvas.height-12-height/2,(a.y+b.y)/2));
+  top.y=middle-height/2;
+  bottom.y=middle+height/2;
+}
+function drawSuperCallouts() {
+  ctx.save();
+  ctx.font='900 29px system-ui';
+  ctx.textAlign='center';
+  ctx.lineJoin='round';
+  const labels=fighters.filter(f=>f.superCall?.until>tick&&f.hp>0).map(f=>{
+    const text=f.superCall.text.toUpperCase(), {height}=fighterArtwork(f);
+    const width=Math.min(canvas.width-36,ctx.measureText(text).width);
+    const halfWidth=width/2+11;
+    return {text,halfWidth,width,x:Math.max(halfWidth,Math.min(canvas.width-halfWidth,f.x)),
+      y:Math.max(34,f.y-height-13),color:f.alternate?mirrorAccent:'#fff0b8'};
+  });
+  separateSuperCallouts(labels);
+  for(const {text,x,y,width,color} of labels){
+    ctx.strokeStyle='#100c1b';ctx.lineWidth=7;ctx.strokeText(text,x,y,width);
+    ctx.fillStyle=color;ctx.fillText(text,x,y,width);
+  }
+  ctx.restore();
+}
+function drawBossTransformation(scene) {
+  const progress=Math.min(1,scene.elapsed/scene.duration);
+  const motion=!reducedMotion.matches;
+  const reveal=motion?progress>=.46:true;
+  const after=Math.max(0,(progress-.46)/.54);
+  const {boss}=scene;
+  const {sprite}=fighterArtwork(reveal?boss:{...boss,demon:false,ascended:false,giant:false});
+  const glow=ctx.createRadialGradient(480,245,25,480,245,363);
+  glow.addColorStop(0,boss.demon?'#80253b':'#3b2686');
+  glow.addColorStop(1,'#090611ee');
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,960,540);
+  ctx.save();
+  ctx.translate(480,257);
+  ctx.strokeStyle=boss.demon?'#fa7551':'#9dcaff';
+  ctx.lineWidth=2;
+  for(let i=0;i<4;i++){
+    const width=91+i*34+(motion?progress*65:0);
+    ctx.globalAlpha=.34-i*.06;
+    ctx.beginPath();
+    ctx.ellipse(0,0,width,width*.77,motion?progress*(i-1)*.55:0,0,Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.fillStyle='#08060d';
+  ctx.fillRect(0,0,960,43);
+  ctx.fillRect(0,455,960,85);
+  ctx.save();
+  ctx.translate(480,447);
+  ctx.scale(-1,1);
+  ctx.globalAlpha=motion&&reveal?Math.min(1,.35+after*4):1;
+  const cinematicHeight=motion?(reveal?356+after*25:304+progress*88):364;
+  const zoom=Math.min(cinematicHeight,800*sprite.h/sprite.w);
+  paintSprite(ctx,sprite,0,0,zoom);
+  ctx.restore();
+}
+function draw() {
+  ctx.fillStyle='#10131c';ctx.fillRect(0,0,960,540);
+  const stage=stages[match.stage], ground=arenaCatalog[match.stage][2];
+  const cover=Math.max(canvas.width/stage.width,canvas.height/stage.height);
+  // Align the new stage's floor with the fighters while keeping the full canvas covered.
+  const scale=ground?Math.max(cover,floor/(stage.height*ground),
+    (canvas.height-floor)/(stage.height*(1-ground))):cover;
+  const w=stage.width*scale,h=stage.height*scale;
+  const y=ground?floor-h*ground:(canvas.height-h)/2;
+  ctx.drawImage(stage,(canvas.width-w)/2,y,w,h);
+  if(interlude?.boss){drawBossTransformation(interlude);return;}
+  if(superEffects.some(effect=>effect.kind==='cast')){
+    ctx.fillStyle='#080b2177';ctx.fillRect(0,0,960,540);
+  }
+  ctx.save();
+  ctx.translate(shake&&!reducedMotion.matches?Math.sin(tick*2)*shake:0,0);
+  shake=Math.max(0,shake-.6);
+  fighters.forEach(drawTeamSupport);
+  fighters.forEach(drawFighter);
+  shots.forEach(drawShot);
+  superEffects.forEach(drawSuperEffect);
+  sparks.forEach(p=>{ctx.globalAlpha=p.life/17;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,4,4)});
+  ctx.restore();
+  drawSuperCallouts();
+}
+function frame(now) {
+  battleVisualTime=now;
+  const elapsed=Math.min(50,now-(previous||now));
+  previous=now;
+  if(screen==='battle'&&$('result').hidden) {
+    if(dialogue){
+      advanceDialogue(elapsed);
+    } else if(interlude){
+      advanceInterlude(elapsed);
+    } else {
+      accumulator+=elapsed;
+      while(accumulator>=fixedStep&&!dialogue&&!interlude&&$('result').hidden){
+        update();tapped.clear();accumulator-=fixedStep;
+      }
+    }
+    draw();
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</html>

@@ -1,0 +1,7 @@
+services:
+  broken-genesis:
+    build: .
+    container_name: broken-genesis
+    ports:
+      - "8080:80"
+    restart: unless-stopped
