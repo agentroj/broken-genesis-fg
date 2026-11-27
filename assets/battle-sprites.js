@@ -86,7 +86,7 @@ function downPose(f,sprite,height,floorY) {
   const cel=resting?.sprite??rasterDownCel(ko.sprite??sprite,ko.height??height,number);
   const drawHeight=resting?.height??cel.h, width=resting?.width??cel.w;
   const padding=8, halfWidth=width/2;
-  const x=Math.max(padding+halfWidth,Math.min(canvas.width-padding-halfWidth,f.x));
+  const x=Math.max(padding+halfWidth,Math.min(battleWidth-padding-halfWidth,f.x));
   const y=Math.min(floorY,Math.max(padding+drawHeight,f.y));
   return {x,y,cel,height:drawHeight,width,face:resting?f.face:ko.fallDirection<0?1:-1};
 }

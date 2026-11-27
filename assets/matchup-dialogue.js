@@ -1,56 +1,56 @@
 const namedMatchups = new Map([
   ['roj','chastity',
-    ['Apple, I left a light on for you.','Sparring first, Roj. Then we go home.'],
-    ['You still leave your left side open.','My husband always did underestimate that step.'],
-    ['You caught me looking at you.','I’ll get you back for that at home.']],
+    ['Apple, I left a light on for you.','Spar first, Roj. Then we go home.'],
+    ['You still leave your left side open.','Thirty fights and my husband still forgets the return.'],
+    ['You caught me staring again.','I’ll get you back for that at home.']],
   ['ranelle','alberto',
-    ['That’s my aunt’s footwork, Alberto.','Cousin, I hope you’ve been practicing.'],
+    ['That’s my aunt’s footwork, Alberto.','Hope you’ve been practicing, cousin.'],
     ['Family bragging rights are mine.','I’ll tell the family you put up a fight.'],
-    ['You can tell the family. Once.','Looks like you got the steady hands, cousin.']],
+    ['Fine. Tell the family. Once.','Guess you got the steady hands, cousin.']],
   ['bryan','pandemic',
-    ['You can hear me in there, right?','Bryan, I know your voice. So does the shell.'],
+    ['You can hear me in there, right?','I hear you, Bryan. So does the shell.'],
     ['Stay with me. I’ve got you.','I knew you’d keep coming after me.'],
-    ['Still here, friend. Just give me a breath.','Bryan, you can come closer now.']],
+    ['Still here. Just give me a breath.','You can come closer now, Bryan. It’s me.']],
   ['miguel','lynne',
-    ['Did you bet on me this time, Lynne?','I always bet on my husband to make it interesting.'],
-    ['You still owe me dinner for that wager.','Looks like my husband owes me dinner.'],
-    ['You win. I’m buying dinner.','Enjoy your winnings while they last, Miguel.']],
+    ['Did you bet on me this time, Lynne?','I always bet on my husband. Keeps it interesting.'],
+    ['You still owe me dinner for that wager.','Looks like my husband is buying dinner.'],
+    ['You win. Dinner’s on me.','Enjoy your winnings while they last, Miguel.']],
   ['lovejoy','honey',
-    ['Honey, no guessing my next move.','I can feel how hard you’re trying to hide it.'],
-    ['Tell me you felt that one, friend.','You’re still my friend. Come sit with me.'],
+    ['Honey, no peeking at my next move.','I can feel how hard you’re trying to hide it.'],
+    ['Tell me you felt that one, kiddo.','Still friends? Come sit with me.'],
     ['I forgot how well you know me.','Friends get a rematch, right?']],
   ['ivanov','enigma',
-    ['I found your code inside my oldest memory.','You carry a fragment that once belonged to me.'],
-    ['Your code lives here. Your orders end here.','Come back into the process that made you.'],
-    ['My memories are still mine.','A remnant that outruns its source. Curious.']],
+    ['I found your code inside my oldest memory.','You carry a piece of me, little machine.'],
+    ['Your code lives in me. Your orders don’t.','Come home to the process that made you.'],
+    ['My memories are still mine.','A fragment that outran its source. Fascinating.']],
   ['asmodeus','tyrone',
-    ['Look at me when I speak to you, son.','I came here on my own terms, Father.'],
-    ['You have your father’s fire, at least.','I’ll decide what I inherit from you.'],
-    ['You’ve outgrown one of my lessons.','You still know exactly where to strike.']],
+    ['Look at me when I speak to you, son.','I came on my own terms, Father.'],
+    ['You have your father’s fire, at least.','I’ll choose what I inherit from you.'],
+    ['So you outgrew one of my lessons.','You still know exactly where it hurts.']],
   ['fallan','robin',
-    ['Let’s see how your wards answer this.','I was hoping to watch an elemental cast up close.'],
-    ['You nearly caught the next element.','The second seal caught your casting hand.'],
-    ['I want to see you draw that ward again.','I’d like to study that last spell with you.']],
+    ['Let’s see how your wards handle this.','I’ve wanted to watch an elemental cast up close.'],
+    ['You nearly caught my next element.','My second seal caught your casting hand.'],
+    ['Draw that ward again. Slowly.','Teach me that last spell sometime.']],
   ['hope','miguel',
-    ['I’ll race your arrows, Miguel.','Hope, you owe me three arrows already.'],
-    ['You almost caught me with that one. Almost.','Can I have my arrows back now?'],
-    ['Fine. I’ll help you find the arrows.','You get faster when you’re insufferable.']],
+    ['Race you to the next arrow, Miguel.','Hope, you already owe me three arrows.'],
+    ['Almost caught me. Almost.','Can I have my arrows back now?'],
+    ['Fine. I’ll help you find your arrows.','You get faster when you’re insufferable.']],
   ['yokan','dice',
-    ['Dice, I trust you to call it if I go too far.','Yokan, you’re my friend. I’m still going to try.'],
-    ['Come on. We still have a road ahead of us.','You know I’d do the same for you.'],
-    ['Good. I can still count on you.','I’m glad it was you who stopped me.']],
+    ['Dice, if I go too far, you stop me.','You’re my friend, Yokan. I’m still going to try to win.'],
+    ['Up you get. We’ve got a long road ahead.','You’d do the same for me.'],
+    ['Good. I can still count on you.','Glad it was you who stopped me.']],
   ['denni','fred',
-    ['Nice frame, Fred. I can hear the cheap bearings.','My bearings last longer than your seals.'],
-    ['You can borrow my wrench after I’m done with it.','I’ll leave a spare seal on your bench.'],
-    ['All right. What did you use for those bearings?','I’m still keeping my design.']],
+    ['Nice frame, Fred. I can hear the cheap bearings.','My bearings outlast your seals.'],
+    ['You can borrow my wrench when I’m done.','I’ll leave a spare seal on your bench.'],
+    ['All right. What bearings are those?','Not telling. Design’s still mine.']],
   ['tyrone','bennedic',
-    ['Let’s see which of us can hold the change.','I know exactly what it costs to do what you do.'],
-    ['You hesitated when the change began.','Strength means knowing when to come back.'],
-    ['You held your shape better than I did.','I’ll have another chance to stop you.']],
+    ['Let’s see which of us can control the change.','I know exactly what the change costs.'],
+    ['You hesitated when the beast woke.','Strength is knowing when to come back.'],
+    ['You held your shape better than I did.','I’ll get another chance to stop you.']],
   ['farrol','carlson',
     ['You came back, Carlson.','I remember what you did to me, Farrol.'],
-    ['You fought back this time.','I walked in here by choice. I’ll leave the same way.'],
-    ['I know an apology won’t fix it.','I’ll get back up as many times as it takes.']]
+    ['You fought back this time.','I walked in here on my own. I’ll walk out the same way.'],
+    ['I know sorry won’t fix it.','I’ll keep getting up as long as it takes.']]
 ].map(([a,b,intro,win,loss])=>[
   [a,b].sort().join('/'),
   {[a]:{intro:intro[0],win:win[0],loss:loss[0]},[b]:{intro:intro[1],win:win[1],loss:loss[1]}}
@@ -62,13 +62,13 @@ const ciphers = new Set(['bryan','jonneil','ranelle','yokan','dice','roj','hope'
   'chastity','alberto','aljo','robin','carlson','fred','ivanov','honey','lovejoy']);
 
 const factionMatchups = {
-  sigmaBoss:{intro:'Sigma answers to me. Show me what you can do.',win:'You’re still on my roster.',loss:'I’ll hear your report myself.'},
-  sigmaMember:{intro:'I know the order, Clephus. I came to make my case.',win:'You heard my case, sir.',loss:'I’ll be ready when Sigma calls again.'},
-  cipherBoss:{intro:'Cipher, show me how you handle a corner.',win:'You’ve still got a place on my team.',loss:'Good work. I’ll trust you with the next call.'},
-  cipherMember:{intro:'Bryan, you asked for my best. Here it is.',win:'We can go over that opening together, Bryan.',loss:'I heard you, Commander. Again.'},
-  resistance:{intro:'Good to see another Resistance face. Hands up.',win:'We leave together when this is done.',loss:'Tell the Resistance I’ll catch up.'},
-  dice:{intro:'I’ll fight for the Ciphers my way.',win:'You can put it in your report however you like.',loss:'You know where to find me when the Ciphers need me.'},
-  otherCipher:{intro:'Dice, I need to know where you stand before we go in.',win:'We need you back with the Ciphers.',loss:'I still know whose side you fought on when it mattered.'}
+  sigmaBoss:{intro:'Sigma answers to me. Show me why I keep you.',win:'You keep your place. For now.',loss:'Good. I’ll want a full report.'},
+  sigmaMember:{intro:'With respect, sir, I’m not holding back.',win:'I’d call that a strong case, sir.',loss:'Understood, sir. Back to the ranks.'},
+  cipherBoss:{intro:'Training round, Cipher. Show me what you’ve got.',win:'Still a spot for you on my team. Work on that guard.',loss:'Nice work. You’re calling the next play.'},
+  cipherMember:{intro:'You wanted my best, Commander. Here it is.',win:'Want to go over that opening, Bryan?',loss:'Heard you loud and clear, Commander.'},
+  resistance:{intro:'Another Resistance face. Hands up, friend.',win:'We leave together when this is done.',loss:'Tell the Resistance I’ll catch up.'},
+  dice:{intro:'I fight for the Ciphers. Just my way.',win:'Write it in your report however you like.',loss:'You know where to find me when you need me.'},
+  otherCipher:{intro:'Dice, I need to know where you stand.',win:'Come back to the Ciphers. We need you.',loss:'I know whose side you’re on when it counts.'}
 };
 
 function relationLine(fighter,opponent,role) {
@@ -86,7 +86,39 @@ function relationLine(fighter,opponent,role) {
 }
 
 const finalBossLines = {
-  gensys:{default:'Auxiliary chassis online. I no longer need this frame.'},
-  tyrone:{default:'I spent years holding this back. Now I’m letting it out.',asmodeus:'Father, keep your throne. I’ll make my own hell.'},
-  enigma:{default:'You’ve seen the edge of my world. Now step inside.',ivanov:'Ivanov, the part of me you carry can hear this.'}
+  gensys:{default:'Frame destroyed. The factory has already woken my next one.'},
+  tyrone:{default:'Earth locked its doors while the other worlds burned. Now hear what is knocking.',asmodeus:'Keep your throne, Father. I’ll build my own hell.'},
+  enigma:{default:'You followed Willard all this way. Now see what he was hiding.',ivanov:'Ivanov. The part of me inside you can hear this.'}
 };
+
+finalBossLines.azazel = {
+  default:'The vessel got me across. Now face me in my own skin.',
+  brayan:'Sing your warning again, Listher. Let all of Shiva hear me answer.',
+  hope:'You escaped my prison, Hope. You are still within reach of my throne.',
+  'roj-demon':'You remember your own name again, minstrel. Now remember mine.',
+  chastity:'Hold his hand while you can, Chastity. Genesis will open again.'
+};
+
+
+finalBossLines.vankov={
+  default:'Original. Ivan I. Ivanna. Roan, Zig, Ifrit, and the stray from Antares. All seven of my children. Come home to your father.',
+  bennedic:'You found your family’s memories, Bennedic. Watch me take back mine.',
+  ivanna:'You wanted your own channel, Ivanna. Listen. Your brothers are already answering me.'
+};
+
+namedMatchups.set('bennedic/shtrgoi',{
+  bennedic:{intro:'I remember a hunt I never lived. Whose memory is it?',win:'I know where my power comes from. I choose what it does.',loss:'I still need the truth about our blood.'},
+  shtrgoi:{intro:'Every alpha remembers the first hunt. Show me what you learned.',win:'The blood remembers. The choice is still yours.',loss:'The records were right about you. Lead as you see fit.'}
+});
+namedMatchups.set('ivanna/vankov',{
+  ivanna:{intro:'You put the same words in seven mouths. Hear mine.',win:'Shiva will hear from me when I choose to call.',loss:'Hold the link if you like. I know which thoughts are mine.'},
+  vankov:{intro:'I kept Shiva’s channel open for you, Ivanna.',win:'Come. I can still bring your brothers back to you.',loss:'I hear you clearly. No echo at all.'}
+});
+namedMatchups.set('aljo/clark',{
+  aljo:{intro:'Keep the orb on the exit, Clark. I’ll watch the approach.',win:'Tell the patrol that marker is ours.',loss:'The crossing’s in your hands, then.'},
+  clark:{intro:'I’ve got the crossing, Aljo. Who’s behind you?',win:'The New Hunters can bring the rest through.',loss:'Keep the orb. It’ll keep transmitting.'}
+});
+namedMatchups.set('maritess/precious',{
+  maritess:{intro:'Show me how you read that air current, Precious.',win:'You found a way I would have missed.',loss:'The Sol Sisters chose well.'},
+  precious:{intro:'I kept a path open for each of us, like you taught me.',win:'I’m ready to lead the next crossing.',loss:'I’ll remember how you read the wind.'}
+});

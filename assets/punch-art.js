@@ -1,6 +1,6 @@
 const punchForms = [
   'jonneil','farrol','karl','bennedic','dice','hope','miguel','lynne','fallan','clephus','mohammad','denni',
-  'chastity','alberto','aljo','robin','carlson','fred','ivanov','honey','lovejoy','asmodeus','gensys','enigma',
+  'chastity','alberto','aljo','robin','carlson','fred','ivanov','lovejoy','asmodeus','gensys','enigma',
   'pandemic','tyrone','bennedic-beast','tyrone-demon','enigma-rift','semmenelin'
 ];
 const illustratedPunchSets = new Set(['jonneil','farrol']);
@@ -32,11 +32,12 @@ function groundedSprite(sprite,groundBand=.16) {
 }
 
 function battleForm(fighter) {
-  if(fighter.giant) return 'gensys-giant';
+  if(fighter.awakened) return 'azazel-beast';
+  if(fighter.giant) return fighter.id==='vankov'?'vankov-mega':'gensys-giant';
   if(fighter.ascended) return 'enigma-rift';
   if(fighter.id==='tyrone'&&(fighter.demon||fighter.beastUntil>tick)) return 'tyrone-demon';
   if(fighter.id==='bennedic'&&fighter.beastUntil>tick) return 'bennedic-beast';
-  return fighter.id;
+  return costumeArtForm(fighter,fighter.id);
 }
 
 function punchCel(fighter,gear) {

@@ -4,24 +4,137 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Broken Genesis</title>
 <style>
+@font-face{font-family:'Cinzel Decorative';font-weight:700;font-display:swap;src:url(assets/fonts/cinzel-decorative-700.woff2) format('woff2')}
+@font-face{font-family:'Cinzel Decorative';font-weight:900;font-display:swap;src:url(assets/fonts/cinzel-decorative-900.woff2) format('woff2')}
+@font-face{font-family:Rajdhani;font-weight:500;font-display:swap;src:url(assets/fonts/rajdhani-500.woff2) format('woff2')}
+@font-face{font-family:Rajdhani;font-weight:700;font-display:swap;src:url(assets/fonts/rajdhani-700.woff2) format('woff2')}
+:root{--display:'Cinzel Decorative',Georgia,'Times New Roman',serif;--ui:Rajdhani,'Arial Narrow',system-ui,sans-serif}
 *{box-sizing:border-box} [hidden]{display:none!important} :root{color-scheme:dark;--gold:#ffd27d;--edge:#464659;--panel:#151823}
 body{margin:0;background:#090b12;color:#f8f1e8;font:16px system-ui,sans-serif} main{max-width:1140px;margin:auto;padding:clamp(12px,3vw,32px)}
+main:has(#battle:not([hidden])){
+  max-width:1280px;height:100dvh;
+  padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right))
+          max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+#battle.screen{
+  display:grid;height:100%;min-width:0;padding:clamp(6px,1.4vmin,16px);
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;
+}
+#battle:fullscreen{
+  width:100%;height:100%;border:0;border-radius:0;background:#090b12;
+  padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right))
+          max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+#storyProgress{grid-row:1;margin:0 0 4px}
+#battle .hud{grid-row:2;margin-bottom:4px}
+.battle-stage{
+  grid-row:3;grid-column:1;min-width:0;min-height:0;container-type:size;
+  display:grid;grid-template-columns:minmax(0,1fr);place-items:start center;
+}
+.battle-stage>.arena{width:min(100%,calc(100cqh * 16 / 9))}
+#battleExit{grid-row:4;margin:4px 0 0;justify-content:center}
 button,select,input{font:inherit} button,select{color:inherit;background:#242838;border:1px solid var(--edge);padding:.65rem .85rem;border-radius:5px} button{cursor:pointer;touch-action:manipulation} button:hover,button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)} button:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .primary{background:var(--gold);color:#211508;font-weight:800;border-color:var(--gold)} .primary:hover{background:#ffe3ab;color:#211508}
 h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-spacing:.055em} h1{font-size:clamp(2.5rem,8vw,6rem)} h2{font-size:clamp(1.55rem,4vw,2.5rem)}
 .screen{padding:clamp(16px,4vw,40px);border:1px solid var(--edge);border-radius:10px;background:var(--panel)}
 .hero{display:grid;align-content:center;justify-items:start;min-height:min(74vh,620px);background:linear-gradient(90deg,#080a13ef,#080a1366),url(assets/lambda-rooftop.png) center/cover}
 .hero h1{max-width:8ch;color:var(--gold)} .row{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin:.8rem 0} .fields{display:grid;gap:.8rem;max-width:460px;margin:1rem 0}.fields label{display:flex;justify-content:space-between;align-items:center;gap:12px}
-#roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px;margin:1rem 0}
-.fighter{padding:.35rem .2rem;min-width:0;font-size:.8rem}
-.fighter canvas,.fighter .random-portrait{display:block;width:100%;aspect-ratio:1;max-width:74px;height:auto;margin:0 auto 4px}
-.fighter .random-portrait{display:grid}
+.wardrobe{margin:1rem 0;padding:1rem;border:1px solid var(--edge);border-radius:7px}
+.wardrobe legend{padding:0 .5rem;color:var(--gold);font-weight:700}
+.wardrobe-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+.wardrobe-card{position:relative;display:grid;grid-template-rows:auto 1fr auto;gap:.35rem;justify-items:center;
+  align-items:center;text-align:center;padding:.75rem .35rem;min-width:0;
+  background:radial-gradient(ellipse at 50% 64%,#32394f,#1b1f2b 68%);}
+.wardrobe-card span{font-size:.75rem;color:#e1d2bb}
+.wardrobe-card strong{font-size:clamp(.72rem,2.6vw,.95rem);overflow-wrap:anywhere}
+.wardrobe-card[aria-pressed=true]{background:radial-gradient(ellipse at 50% 64%,#534451,#222332 70%);}
+.wardrobe-card:disabled{opacity:.45;cursor:default}
+.wardrobe-card canvas{display:block;width:100%;max-width:190px;height:auto;max-height:150px;object-fit:contain}
+.god-notice{position:absolute;inset:8% 0 auto;text-align:center;color:#f7e7ff;letter-spacing:.06em;
+  font-size:clamp(.78rem,2.4vw,1.3rem);font-weight:900;pointer-events:none;z-index:4;text-shadow:0 2px 8px #160d33}
+.arena.god-flash::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  border:3px solid #c9a1ff;border-radius:6px;background:#b989ff17;animation:god-flash .42s ease-out both}
+@keyframes god-flash{0%{opacity:.75}45%{opacity:.12}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.arena.god-flash::after{background:none;animation:none}}
+main:has(#select:not([hidden])){
+  max-width:1320px;height:100dvh;
+  padding:max(5px,env(safe-area-inset-top)) max(7px,env(safe-area-inset-right))
+          max(5px,env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left));
+}
+#select.screen{
+  height:100%;min-height:300px;display:grid;align-content:stretch;min-width:0;
+  grid-template-rows:auto auto minmax(0,1fr) auto auto;
+  gap:clamp(3px,1vmin,9px);padding:clamp(5px,1.4vmin,14px);
+}
+#select .row{margin:0;gap:4px}
+#select button,#select select{padding:clamp(3px,1vmin,7px) clamp(4px,1vw,10px)}
+.select-heading,.select-footer{display:flex;align-items:center;justify-content:space-between;gap:5px;flex-wrap:wrap}
+#selectTitle{font-size:clamp(1.05rem,2.6vmin,1.8rem);margin:0}
+#select .campaign-choice{margin:0;display:flex;align-items:center;gap:3px}
+#select .campaign-choice legend{float:left;margin:0 2px 0 0}
+#select .campaign-choice button,.select-heading select,.select-heading label,
+.select-footer button,.select-footer select,.select-footer label,.select-picks button{font-size:clamp(.65rem,1.6vmin,.94rem)}
+.select-picks{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.select-picks button{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#roster{
+  --hero-columns:7;--villain-columns:4;--tile-rows:5;
+  min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:clamp(4px,1vw,12px);
+  container-type:size;
+}
+.roster-side{
+  min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);
+  padding:clamp(3px,.8vw,9px);border:1px solid #365b67;border-radius:7px;
+  background:radial-gradient(ellipse at 100% 40%,#203c48,#0d1723 78%);
+}
+.roster-side.villains{border-color:#694352;background:radial-gradient(ellipse at 0% 40%,#482a39,#21131e 78%)}
+.roster-side h3{margin:0 0 4px;text-align:right;font-size:clamp(.71rem,2vmin,1.07rem);color:#aeefff;text-transform:uppercase;letter-spacing:.1em}
+.roster-side.villains h3{text-align:left;color:#ffb3c0}
+.roster-grid{
+  display:grid;min-width:0;align-content:start;gap:clamp(2px,.5vmin,5px);
+  grid-template-columns:repeat(var(--hero-columns),minmax(0,1fr));
+}
+.villains .roster-grid{grid-template-columns:repeat(var(--villain-columns),minmax(0,1fr))}
+#select .fighter{
+  height:clamp(25px,calc((100cqh - 32px) / var(--tile-rows) - 3px),94px);
+  display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;min-width:0;
+  padding:1px 0 2px;font-size:clamp(.47rem,1.3vmin,.76rem);font-weight:750;line-height:1.05;
+  border-radius:4px;background:linear-gradient(160deg,#223947,#121c2b);
+}
+#select .villains .fighter{background:linear-gradient(200deg,#432839,#231723)}
+#select .fighter[aria-pressed=true]{background:#444052;box-shadow:inset 0 0 0 1px var(--gold)}
+.fighter span:not(.random-portrait){max-width:100%;overflow-wrap:anywhere;text-align:center}
+.fighter canvas,.fighter .random-portrait{display:block;height:100%;min-height:0;max-width:100%;object-fit:contain;aspect-ratio:1}
+.villains .fighter canvas,.wardrobe[data-side=villains] canvas{transform:scaleX(-1)}
+.fighter .random-portrait{display:grid;font-size:clamp(.76rem,3vmin,1.8rem);margin:0}
+.fighter .random-portrait::before{width:95%;inset:0}
+#select .wardrobe{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px;padding:2px 5px 4px;margin:0;min-width:0}
+#select .wardrobe legend{font-size:clamp(.64rem,1.6vmin,.85rem)}
+#select .wardrobe-choices{gap:4px;grid-column:2}
+#select #cpuCostumeAuto{font-size:clamp(.6rem,1.5vmin,.8rem)}
+#select .wardrobe-card{display:flex;justify-content:center;gap:4px;padding:2px 3px;text-align:left;min-height:28px}
+#select .wardrobe-card canvas{width:clamp(24px,7vmin,52px);height:clamp(24px,7vmin,52px);flex-shrink:0}
+#select .wardrobe-card strong{font-size:clamp(.58rem,1.45vmin,.82rem);line-height:1.05}
+#select #assetStatus{position:fixed;inset:auto 8px 8px;background:#151823;margin:0;z-index:3}
+#select #assetStatus:empty{display:none}
+@media(max-width:600px){
+  #roster{--hero-columns:5;--villain-columns:3;--tile-rows:7;grid-template-columns:minmax(0,5fr) minmax(0,3fr)}
+  #select .wardrobe-card{flex-direction:column;text-align:center}
+}
+@media(max-width:365px){
+  #roster{--hero-columns:4;--tile-rows:9;grid-template-columns:minmax(0,4.5fr) minmax(0,3fr)}
+}
+@media(orientation:landscape) and (max-height:440px){
+  #roster{--hero-columns:8;--villain-columns:4;--tile-rows:5;grid-template-columns:minmax(0,8fr) minmax(0,4fr)}
+  #select .wardrobe-card{flex-direction:row;text-align:left}
+  #select .wardrobe-card canvas{height:30px;width:31px}
+  #select .wardrobe-card{min-height:28px}
+}
 .campaign-choice{padding:0;border:0;margin:1rem 0}
 .campaign-choice legend{margin-bottom:.45rem}
 .random-portrait{display:grid;place-items:center;height:84px;margin-bottom:4px;position:relative;isolation:isolate;color:#ffe19a;font-size:2rem;font-weight:900}
 .random-portrait::before{content:'';position:absolute;inset:5px auto 3px;width:72px;z-index:-1;background:#090b13;
   clip-path:polygon(15% 100%,19% 76%,37% 64%,36% 54%,27% 44%,26% 23%,33% 9%,49% 3%,65% 9%,73% 23%,73% 44%,64% 54%,63% 64%,81% 76%,85% 100%)}
-.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:10px} .hud>div:last-child{text-align:right} .hud strong{display:block} .meter{height:12px;background:#343749;margin:4px 0;overflow:hidden;border-radius:3px}.meter i{display:block;height:100%;background:#fa6a67}.meter.skill i{background:#66cced}.meter.skill i.full{background:var(--gold)} .round{text-align:center;color:var(--gold);font-weight:800}.arena{position:relative} #game{width:100%;height:auto;display:block;border:1px solid var(--edge);border-radius:6px}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:10px} .hud>div:last-child{text-align:right} .hud strong{display:block} .meter{height:12px;background:#343749;margin:4px 0;overflow:hidden;border-radius:3px}.meter i{display:block;height:100%;background:#fa6a67}.meter.skill i{background:#66cced}.meter.skill i.full{background:var(--gold)} .round{text-align:center;color:var(--gold);font-weight:800}.arena{position:relative} #game{width:100%;height:auto;aspect-ratio:16/9;display:block;border:1px solid var(--edge);border-radius:6px}
 .result{position:absolute;inset:0;display:grid;place-content:center;text-align:center;background:#090b12d9;padding:12px}.result .row{justify-content:center} .hint{font-size:.9rem;color:#c5c5d2}
 @media(max-width:430px){.hud{gap:5px;font-size:.8rem}.result h2{font-size:1.15rem}.result button{padding:.35rem}}
 .control-guide{margin-top:18px;display:grid;gap:16px}
@@ -72,14 +185,41 @@ h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-sp
   align-items:center;gap:clamp(6px,2vw,28px);padding:clamp(8px,3vw,36px);text-align:center;
   background:radial-gradient(ellipse at 50% 70%,#423147,#141323 61%,#090a12);}
 .matchup figure{margin:0;min-width:0;color:#fff2ce;font-size:clamp(.7rem,2.7vw,1.9rem);font-weight:900;overflow-wrap:anywhere}
-.matchup canvas{display:block;width:100%;height:clamp(72px,29vw,310px);object-fit:contain;margin:0 auto 4px}
+.matchup canvas{display:block;width:100%;height:min(clamp(72px,29vw,310px),52cqh);object-fit:contain;margin:0 auto 4px}
 .matchup-versus{color:var(--gold);font-size:clamp(1rem,6vw,4rem);font-weight:950}
 .story-page{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);align-items:center;gap:clamp(14px,4vw,44px)}
 .story-page canvas{display:block;width:100%;height:auto;max-height:320px;object-fit:contain}
 .story-page h2{line-height:1.08}.story-page .story-copy{max-width:56ch;line-height:1.55}
 .story-page .hint{color:var(--gold)}
-#touch{display:none;position:fixed;inset:auto 0 0;z-index:5;justify-content:space-between;align-items:end;gap:8px;
-  margin:0;padding:0 max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+.story-page[data-season="1"]{background:linear-gradient(90deg,#11131fdf,#151823f6 50%),url(assets/colledo-turbine.png) center/cover}
+.story-page[data-season="2"]{background:linear-gradient(90deg,#101a25df,#151823f6 50%),url(assets/shiva-sky-sanctuary.jpg) center/cover}
+.story-page[data-season="3"]{background:linear-gradient(90deg,#14101bdc,#16121cf6 46%),url(assets/ifrit-city.jpg) center/cover}
+.story-page[data-season="3"] .story-copy{color:#f5ebdc}
+.story-library{--lore-accent:#ffd27d;--lore-image:url(assets/colledo-turbine.png)}
+.story-library[data-season="2"]{--lore-accent:#a6e6ff;--lore-image:url(assets/shiva-sky-sanctuary.jpg)}
+.story-library[data-season="3"]{--lore-accent:#ffb085;--lore-image:url(assets/ifrit-city.jpg)}
+.story-library[data-season="4"]{--lore-accent:#83e6ff;--lore-image:url(assets/zig-transit.jpg)}
+.story-page[data-season="4"]{background:linear-gradient(90deg,#0e1826e0,#101723f6 52%),url(assets/zig-transit.jpg) center/cover}
+.lore-top{border-bottom:1px solid var(--edge);margin-bottom:1.2rem}
+.lore-cover{padding:clamp(16px,4vw,38px);min-height:190px;display:grid;align-content:end;
+  border:1px solid var(--edge);border-radius:8px;
+  background:linear-gradient(90deg,#111522f7,#12152391),var(--lore-image) center/cover}
+.lore-cover h3{font-size:clamp(1.55rem,4vw,2.8rem);margin:0 0 .5rem;color:var(--lore-accent)}
+.lore-cover .hint{color:var(--lore-accent)}
+.lore-cover p:last-child{margin-bottom:0}
+.lore-copy{max-width:72ch;line-height:1.6;color:#f0e8dd}
+.lore-chapters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:.75rem;margin:1rem 0}
+.lore-chapters section,.lore-ending,.lore-fighter{padding:1rem;border:1px solid var(--edge);border-radius:7px;background:#10131e}
+.lore-chapters h4,.lore-ending h4{margin:0 0 .5rem;color:var(--lore-accent);font-size:1.05rem}
+.lore-chapters p:last-child,.lore-ending p:last-child{margin-bottom:0}
+.lore-fighter{display:grid;align-items:center;grid-template-columns:clamp(92px,22vw,235px) minmax(0,1fr);gap:clamp(12px,4vw,36px)}
+.lore-fighter canvas{display:block;width:100%;height:auto}
+.lore-fighter h3{margin:0 0 .55rem;font-size:clamp(1.4rem,3vw,2rem);color:var(--lore-accent)}
+.lore-fighter label{display:block;margin-bottom:.75rem}
+.lore-fighter select{display:block;width:100%;max-width:290px;margin-top:.3rem}
+@media(max-width:520px){.lore-fighter{grid-template-columns:1fr}.lore-fighter canvas{width:112px;margin:auto}}
+#touch{display:none;grid-row:5;justify-content:space-between;align-items:end;gap:8px;
+  margin:4px 0 0;
   pointer-events:none;user-select:none;-webkit-user-select:none}
 .touch-group{display:grid;gap:4px;min-width:0;align-content:center}
 .touch-action{grid-template-columns:repeat(3,minmax(0,1fr));width:clamp(155px,47vw,245px);pointer-events:auto}
@@ -90,7 +230,6 @@ h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-sp
 #touch button:is([data-action="super"],[data-action="super2"]){color:#ffe19a;border-color:#9d7940}
 #touch button:is([data-action="super"],[data-action="super2"]).is-held{color:#241c18}
 .touch-device #touch{display:flex}
-.touch-device #battle{padding:7px}
 #joystick{width:clamp(90px,29vw,142px);aspect-ratio:1;touch-action:none;pointer-events:auto;
   display:grid;place-items:center;border-radius:50%;border:2px solid #929cb7;background:#141a2bd9;
   color:#d4ddf6;position:relative;box-shadow:inset 0 0 0 7px #5e678637}
@@ -103,21 +242,113 @@ h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-sp
   .story-page{grid-template-columns:1fr}
   .story-page canvas{height:130px;width:100%;object-fit:contain}
 }
-@media (orientation:landscape) and (max-height:540px) and (max-width:1050px){
-  main{padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
-  #storyProgress{margin:0;font-size:.72rem}
-  #battle .hud{margin:0;gap:8px;font-size:.75rem}
+@media (max-height:540px){
+  #storyProgress{font-size:.72rem}
+  #battle .hud{gap:8px;font-size:.75rem}
   #battle .meter{margin:2px 0;height:7px}
-  #battle .hint{font-size:.72rem}
-  .touch-device #battle .arena{width:min(100%,calc((100dvh - 100px)*16/9));margin-inline:auto}
-  .touch-action{width:clamp(145px,28vw,220px)}
-  #battleExit{margin:0;text-align:center;justify-content:center}
+  #joystick{width:clamp(68px,20vh,100px)}
+  .touch-action{width:clamp(155px,32vw,245px)}
+  #touch button{min-height:32px}
 }
-@media (orientation:portrait){.touch-device #battle:has(#touch:not([hidden])){padding-bottom:160px}}
+@media (orientation:landscape) and (max-height:540px) and (min-width:560px){
+  .touch-device #battle:has(#touch:not([hidden])){--attack-pad:clamp(145px,25vw,180px)}
+  .touch-device #battle:has(#touch:not([hidden])) .battle-stage{
+    padding-inline:calc(clamp(68px,20vh,100px) + 8px) calc(var(--attack-pad) + 8px);
+  }
+  .touch-device #touch{grid-row:3;grid-column:1;align-self:end;z-index:3;margin:0}
+  .touch-device .touch-action{width:var(--attack-pad)}
+}
+@container (max-height:235px){
+  .matchup{padding:5px}
+  .boss-scene strong{font-size:clamp(.9rem,10cqh,1.7rem)}
+  .boss-scene span{font-size:clamp(.7rem,5cqh,.95rem)}
+  .result{padding:4px}
+  .result h2{font-size:clamp(1rem,9cqh,1.5rem);margin-bottom:4px}
+  .result p,.result .row{margin:2px 0}
+  .result button{padding:.25rem .4rem}
+}
+
+/* Title logo and menu typography */
+h1,h2,h3{font-family:var(--display);font-weight:900}
+button,select,legend,label,.hud,.hint,.round,.result,.round-announcement,.combo-count,#storyProgress{font-family:var(--ui);font-weight:700;letter-spacing:.04em}
+button,select{font-size:1.06rem}
+.round-announcement{font-family:var(--display);letter-spacing:.04em}
+.hero{position:relative;overflow:hidden;justify-items:center;text-align:center;
+  background:radial-gradient(ellipse at 50% 42%,#2a120a66,#080a13f2 70%),linear-gradient(180deg,#080a13cc,#080a1366 45%,#080a13ee),url(assets/lambda-rooftop.png) center/cover}
+.hero::before{content:'';position:absolute;inset:-20%;pointer-events:none;
+  background:radial-gradient(circle at 50% 38%,#ff8a3d33,transparent 38%);animation:logo-pulse 5s ease-in-out infinite}
+.hero>*{position:relative}
+.hero .row{justify-content:center;margin-top:1.6rem}
+.hero .row button{min-width:9.5rem;text-transform:uppercase;background:#141826d9;backdrop-filter:blur(3px);
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);border-color:#6b5a3e;padding:.7rem 1.3rem}
+.hero .row button:hover,.hero .row button:focus-visible{background:#2c2015e6;border-color:var(--gold);color:#fff3d1}
+.hero .row .primary{background:linear-gradient(180deg,#ffe3a0,#e9a743);color:#211508;border-color:#ffe3a0}
+.hero .row .primary:hover,.hero .row .primary:focus-visible{background:linear-gradient(180deg,#fff0c8,#f0b85e);color:#211508}
+.hero #continue{margin-top:1.8rem;min-width:12rem;font-size:1.2rem;text-transform:uppercase;letter-spacing:.18em;
+  clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);animation:logo-call 2.4s ease-in-out infinite}
+.hero .logo{display:grid;justify-items:center;max-width:none;margin:0;line-height:.9;letter-spacing:0;text-transform:none}
+.logo-broken,.logo-genesis{position:relative;display:block;font-family:var(--display);font-weight:900;text-transform:uppercase}
+.logo-broken{font-size:clamp(1.6rem,5.4vw,3.6rem);letter-spacing:.42em;margin-right:-.42em;
+  background:linear-gradient(180deg,#f4f6fb 0%,#aab3c4 48%,#5b6478 52%,#c9d0dd 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 #0a0c14) drop-shadow(0 0 14px #9fb6ff33)}
+.logo-genesis{font-size:clamp(3rem,11.5vw,8.4rem);letter-spacing:.06em;margin-top:.05em;filter:drop-shadow(0 4px 0 #1a0b05) drop-shadow(0 0 22px #ff7a2a66)}
+/* GENESIS is drawn twice and split along a jagged crack, the halves slightly offset. */
+.logo-genesis span{display:block;background:linear-gradient(180deg,#fff6d6 0%,#ffd27d 34%,#e08a2c 62%,#7a3410 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.logo-genesis span+span{position:absolute;inset:0}
+.logo-genesis span:first-child{clip-path:polygon(0 0,100% 0,100% 38%,71% 52%,58% 41%,44% 60%,30% 47%,16% 58%,0 50%)}
+.logo-genesis span+span{clip-path:polygon(0 50%,16% 58%,30% 47%,44% 60%,58% 41%,71% 52%,100% 38%,100% 100%,0 100%);transform:translate(.04em,.035em) rotate(.6deg)}
+.logo-genesis::after{content:'';position:absolute;left:0;right:0;top:38%;height:24%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#ffb35a 20%,#fff1c4 50%,#ffb35a 80%,transparent);opacity:.55;mix-blend-mode:screen;
+  clip-path:polygon(0 50%,16% 83%,30% 37%,44% 92%,58% 13%,71% 58%,100% 0,100% 8%,71% 66%,58% 21%,44% 100%,30% 45%,16% 91%,0 58%);
+  animation:logo-crack 3.6s ease-in-out infinite}
+@keyframes logo-pulse{50%{opacity:.55;transform:scale(1.06)}}
+@keyframes logo-crack{0%,100%{opacity:.35}50%{opacity:.85}}
+@keyframes logo-call{50%{box-shadow:0 0 22px #ffb3477a}}
+@media(prefers-reduced-motion:reduce){.hero::before,.logo-genesis::after,.hero #continue{animation:none}}
 </style>
+<audio id="soundtrack" preload="none" loop hidden></audio>
 <main>
-  <section id="splash" class="screen hero"><h1>Broken Genesis</h1><button class="primary" id="continue">Continue</button></section>
-  <section id="menu" class="screen hero" hidden><h1>Broken Genesis</h1><div class="row"><button class="primary" id="arcadeMode">Arcade Mode</button><button id="storyMode">Story Mode</button><button id="tagMode">Tag Team</button><button id="openHelp">Help</button><button id="openSettings">Settings</button></div></section>
+  <section id="splash" class="screen hero"><h1 class="logo" aria-label="Broken Genesis"><span class="logo-broken" aria-hidden="true">Broken</span><span class="logo-genesis" aria-hidden="true"><span>Genesis</span><span>Genesis</span></span></h1><button class="primary" id="continue">Press Start</button></section>
+  <section id="menu" class="screen hero" hidden><h1 class="logo" aria-label="Broken Genesis"><span class="logo-broken" aria-hidden="true">Broken</span><span class="logo-genesis" aria-hidden="true"><span>Genesis</span><span>Genesis</span></span></h1><div class="row"><button class="primary" id="arcadeMode">Arcade Mode</button><button id="storyMode">Story Mode</button><button id="tagMode">Tag Team</button><button id="openStoryLibrary">Story</button><button id="openHelp">Help</button><button id="openSettings">Settings</button></div></section>
+  <section id="storyLibrary" class="screen story-library" aria-labelledby="storyLibraryTitle" hidden>
+    <div class="lore-top">
+      <h2 id="storyLibraryTitle">Story</h2>
+      <fieldset class="campaign-choice">
+        <legend>Season</legend>
+        <button type="button" data-lore-season="1" aria-pressed="true">Season 1</button>
+        <button type="button" data-lore-season="2" aria-pressed="false">Season 2</button>
+        <button type="button" data-lore-season="3" aria-pressed="false">Season 3 · Ifrit</button>
+        <button type="button" data-lore-season="4" aria-pressed="false">Season 4 · Zig</button>
+      </fieldset>
+      <div class="row" role="group" aria-label="Story section">
+        <button type="button" data-lore-view="season" aria-pressed="true">Season Story</button>
+        <button type="button" data-lore-view="fighter" aria-pressed="false">Character Stories</button>
+      </div>
+    </div>
+    <div id="loreSeasonPage">
+      <header class="lore-cover">
+        <p class="hint" id="loreWorld"></p>
+        <h3 id="loreSeasonTitle"></h3>
+        <div class="lore-copy" id="loreOverview"></div>
+      </header>
+      <div class="lore-chapters" id="loreChapters"></div>
+      <section class="lore-ending" aria-labelledby="loreEndingTitle">
+        <h4 id="loreEndingTitle"></h4>
+        <div class="lore-copy" id="loreEnding"></div>
+      </section>
+    </div>
+    <div id="loreFighterPage" class="lore-fighter" hidden>
+      <canvas id="lorePortrait" width="300" height="330" aria-hidden="true"></canvas>
+      <div>
+        <label>Fighter <select id="loreFighter"></select></label>
+        <h3 id="loreFighterTitle"></h3>
+        <div class="lore-copy" id="loreFighterCopy"></div>
+        <button id="loreTheme" type="button" aria-pressed="false">Play Battle Theme</button>
+      </div>
+    </div>
+    <div class="row"><button id="storyLibraryBack">Main Menu</button></div>
+  </section>
   <section id="help" class="screen" hidden>
     <h2>Help</h2>
     <p class="hint">These hotkeys reflect your current bindings. To change them, go to Settings.</p>
@@ -144,38 +375,57 @@ h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-sp
       <label>Rounds per match <select id="rounds"><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
       <label>Touch controls <select id="touchPreference"><option value="auto">Auto</option><option value="on">On</option><option value="off">Off</option></select></label>
     </div>
+    <p class="hint"><a href="audio-credits.html" target="_blank" rel="noopener">Music and sound credits</a></p>
     <h2>Controls</h2>
     <p class="hint">Hold Guard to block. At full Skill, press High Punch + High Kick for Super 1 or Medium Punch + Medium Kick for Super 2.</p>
     <div id="bindings" class="fields"></div>
     <div class="row"><button id="restore">Restore default controls</button><button id="settingsBack">Back</button></div>
   </section>
   <section id="select" class="screen" hidden>
-    <h2 id="selectTitle">Arcade Mode</h2>
-    <fieldset id="storySeasonChoice" class="campaign-choice" hidden>
-      <legend>Choose a campaign</legend>
-      <button type="button" id="storySeason1" aria-pressed="true">Season 1</button>
-      <button type="button" id="storySeason2" aria-pressed="false">Season 2</button>
+    <header class="select-heading">
+      <h2 id="selectTitle">Arcade Mode</h2>
+      <fieldset id="storySeasonChoice" class="campaign-choice" hidden>
+        <legend>Campaign</legend>
+        <button type="button" id="storySeason1" title="Semmenelin and Tyrone" aria-pressed="true">Season 1</button>
+        <button type="button" id="storySeason2" title="Gensys and Enigma" aria-pressed="false">Season 2</button>
+        <button type="button" id="storySeason3" title="Demon Roj and Azazel" aria-pressed="false">Season 3</button>
+        <button type="button" id="storySeason4" title="Shtrgoi and Vankov" aria-pressed="false">Season 4</button>
+      </fieldset>
+      <label id="rosterFilter">Roster <select id="rosterSeason"><option value="all">All fighters</option><option value="1">Season 1</option><option value="2">Season 2</option><option value="3">Season 3</option><option value="4">Season 4</option></select></label>
+    </header>
+    <div class="select-picks"><button id="pick0"></button><button id="pick1"></button><button id="pick2" hidden></button><button id="pick3" hidden></button></div>
+    <div id="roster">
+      <section class="roster-side heroes" aria-labelledby="heroesLabel">
+        <h3 id="heroesLabel">Heroes</h3>
+        <div class="roster-grid" id="heroesRoster"></div>
+      </section>
+      <section class="roster-side villains" aria-labelledby="villainsLabel">
+        <h3 id="villainsLabel">Villains</h3>
+        <div class="roster-grid" id="villainsRoster"></div>
+      </section>
+    </div>
+    <fieldset id="wardrobe" class="wardrobe">
+      <legend id="wardrobeLegend">Costume</legend>
+      <div class="row" id="cpuCostumeChoice" hidden>
+        <button type="button" id="cpuCostumeAuto" aria-pressed="false">Random Costume</button>
+      </div>
+      <div id="wardrobeChoices" class="wardrobe-choices"></div>
     </fieldset>
-    <div class="row" id="rosterFilter">
-      <label>Roster <select id="rosterSeason"><option value="all">All fighters</option><option value="1">Season 1</option><option value="2">Season 2</option></select></label>
-    </div>
-    <p id="storyHelp" class="hint" hidden></p>
-    <div class="row"><button id="pick0"></button><button id="pick1"></button><button id="pick2" hidden></button><button id="pick3" hidden></button></div>
-    <div id="roster"></div>
-    <div class="row">
-      <label id="opponentChoice">Match type <select id="mode">
-        <option value="cpu">Player vs CPU</option><option value="human">Player vs Player</option><option value="spectate">CPU vs CPU</option>
-      </select></label>
-      <label id="difficulty">Difficulty <select id="ai"><option>Easy</option><option selected>Normal</option><option>Hard</option></select></label>
-      <span id="arenaHelp" class="hint">Arena is randomized each round.</span>
-    </div>
-    <div class="row"><button class="primary" id="fight" disabled>Start Fight</button><button id="selectBack">Main Menu</button></div>
+    <footer class="select-footer">
+      <div class="row">
+        <label id="opponentChoice">Match <select id="mode">
+          <option value="cpu">Player vs CPU</option><option value="human">Player vs Player</option><option value="spectate">CPU vs CPU</option>
+        </select></label>
+        <label id="difficulty">Difficulty <select id="ai"><option>Easy</option><option selected>Normal</option><option>Hard</option></select></label>
+      </div>
+      <div class="row"><button id="selectBack">Main Menu</button><button class="primary" id="fight" disabled>Start Fight</button></div>
+    </footer>
     <p class="hint" id="assetStatus" role="status">Loading fighters and arenas…</p>
   </section>
   <section id="battle" class="screen" hidden aria-label="Broken Genesis battle">
     <p id="storyProgress" class="hint" hidden></p>
     <div class="hud"><div id="hud0"></div><div class="round" id="round"></div><div id="hud1"></div></div>
-    <div class="arena">
+    <div class="battle-stage"><div class="arena">
       <canvas id="game" width="960" height="540" aria-label="Battle arena"></canvas>
       <section id="matchup" class="matchup" aria-label="Matchup" hidden>
         <figure><canvas id="portrait0" width="340" height="320" aria-hidden="true"></canvas><figcaption id="matchupName0"></figcaption></figure>
@@ -186,55 +436,84 @@ h1,h2,p{margin:0 0 .8rem} h1,h2{line-height:1;text-transform:uppercase;letter-sp
       <div id="combo0" class="combo-count" hidden></div>
       <div id="combo1" class="combo-count" hidden></div>
       <div id="bossScene" class="boss-scene" role="status" hidden><strong id="bossSceneName"></strong><span id="bossSceneLine"></span></div>
+      <div id="godNotice" class="god-notice" role="status" hidden></div>
       <div id="roundAnnouncement" class="round-announcement" role="status" hidden></div>
       <div id="result" class="result" hidden><h2 id="resultTitle"></h2><p id="score"></p><div class="row"><button id="advance" class="primary"></button><button id="changeFighters">Fighter Select</button></div></div>
-    </div>
+    </div></div>
+    <div class="row" id="battleExit"><button id="leave">Main Menu</button><button id="arenaFullscreen" type="button" hidden>Full Screen</button></div>
     <div id="touch" role="group" aria-label="Player 1 touch controls">
       <div id="joystick" role="group" aria-label="Movement joystick"><span id="joystickKnob"></span></div>
       <div id="touchAction" class="touch-group touch-action" role="group" aria-label="Attacks and super"></div>
     </div>
-    <div class="row" id="battleExit"><button id="leave">Main Menu</button></div>
   </section>
 </main>
-<script src="assets/dialogue.js"></script>
-<script src="assets/story.js"></script>
-<script src="assets/season-two.js"></script>
-<script src="assets/matchup-dialogue.js"></script>
-<script src="assets/second-supers.js"></script>
-<script src="assets/combat-animation.js"></script>
-<script src="assets/combat-effects.js"></script>
-<script src="assets/battle-sprites.js"></script>
-<script src="assets/punch-art.js"></script>
-<script src="assets/action-sheets.js"></script>
-<script src="assets/action-art.js"></script>
+<script src="assets/dialogue.js?rev=lour"></script>
+<script src="assets/season-four.js?rev=proportions"></script>
+<script src="assets/new-challengers.js?rev=proportions"></script>
+<script src="assets/story.js?rev=challengers"></script>
+<script src="assets/story-music.js?rev=challengers"></script>
+<script src="assets/season-two.js?rev=proportions"></script>
+<script src="assets/season-three.js?rev=proportions"></script>
+<script src="assets/matchup-dialogue.js?rev=zig"></script>
+<script src="assets/second-supers.js?rev=lour"></script>
+<script src="assets/combat-animation.js?rev=proportions"></script>
+<script src="assets/combat-effects.js?rev=ifrit"></script>
+<script src="assets/battle-sprites.js?rev=weapon-art"></script>
+<script src="assets/punch-art.js?rev=zig"></script>
+<script src="assets/action-sheets.js?rev=pose-audit"></script>
+<script src="assets/action-art.js?rev=pose-audit"></script>
+<script src="assets/costume-sheets.js?rev=challengers"></script>
+<script src="assets/costumes.js?rev=challengers"></script>
+<script src="assets/fighter-look.js?rev=proportions"></script>
+<script src="assets/impact-effects.js?rev=impact2"></script>
+<script src="assets/announcer.js?rev=announcer"></script>
 <script>
-const roster=[{id:'bryan',name:'BRYAN',style:'strategist',desc:'Technical reads and precise timing.',color:'#384357',accent:'#c9d2e0',speed:3.4,power:1.0,reach:116},{id:'jonneil',name:'JONNEIL',style:'grappler',desc:'Close combat and heavy throws.',color:'#5c7b62',accent:'#d7c08b',speed:2.9,power:1.35,reach:110},{id:'ranelle',name:'RANELLE',style:'soldier',desc:'Disciplined footwork and range.',color:'#9c7447',accent:'#d8e2c5',speed:3.5,power:1.05,reach:120},{id:'yokan',name:'YOKAN',style:'swordsman',desc:'Wounded blade fighter with resolve.',color:'#7a4b62',accent:'#d8e6ff',speed:3.2,power:1.25,reach:132},{id:'dice',name:'DICE',style:'shadowcraft',desc:'Living shadows and tricky angles.',color:'#24263d',accent:'#9b8cff',speed:3.7,power:1.0,reach:128},{id:'roj',name:'ROJ',style:'swordsman',desc:'Measured duelist with lost memories.',color:'#754038',accent:'#e7c786',speed:3.3,power:1.25,reach:134},{id:'hope',name:'HOPE',style:'thief',desc:'Fast hands and evasive movement.',color:'#4a6c8a',accent:'#e7b6d4',speed:4.4,power:.85,reach:108},{id:'miguel',name:'MIGUEL',style:'ranger',desc:'Patient ranged pressure.',color:'#52744d',accent:'#d9b36f',speed:3.1,power:1.1,reach:138},{id:'bennedic',name:'BENNEDIC',style:'cursed',desc:'Warrior power with a dangerous edge.',color:'#6d4f7d',accent:'#e48b74',speed:3.0,power:1.4,reach:118},{id:'fallan',name:'FALLAN',style:'sorcerer',desc:'Arcane control and punishing bursts.',color:'#624f98',accent:'#b8c8ff',speed:3.0,power:1.3,reach:142},{id:'lynne',name:'LYNNE',style:'gambler',desc:'Unpredictable rhythm and sharp feints.',color:'#9b4b63',accent:'#f2d48a',speed:4.0,power:.95,reach:118},
+const roster=[{id:'bryan',name:'BRYAN',style:'strategist',desc:'Technical reads and precise timing.',color:'#384357',accent:'#c9d2e0',speed:3.4,power:1.0,reach:116},{id:'jonneil',name:'JONNEIL',style:'grappler',desc:'Close combat and heavy throws.',color:'#5c7b62',accent:'#d7c08b',speed:2.9,power:1.35,reach:110},{id:'ranelle',name:'RANELLE',style:'soldier',desc:'Disciplined footwork and range.',color:'#9c7447',accent:'#d8e2c5',speed:3.5,power:1.05,reach:120},{id:'yokan',name:'YOKAN',style:'swordsman',desc:'Wounded blade fighter with resolve.',color:'#7a4b62',accent:'#d8e6ff',speed:3.2,power:1.25,reach:132},{id:'dice',name:'DICE',style:'shadowcraft',desc:'Living shadows and tricky angles.',color:'#24263d',accent:'#9b8cff',speed:3.7,power:1.0,reach:128},{id:'roj',name:'ROJ',style:'swordsman',desc:'Measured duelist with lost memories.',color:'#754038',accent:'#e7c786',speed:3.3,power:1.25,reach:134},{id:'hope',name:'HOPE',style:'thief',desc:'Fast hands and evasive movement.',color:'#4a6c8a',accent:'#e7b6d4',speed:4.4,power:.85,reach:108},{id:'miguel',name:'MIGUEL',style:'ranger',desc:'Patient ranged pressure.',color:'#52744d',accent:'#d9b36f',speed:3.1,power:1.1,reach:138},{id:'bennedic',name:'BENNEDIC',style:'cursed',desc:'Warrior power with a dangerous edge.',color:'#6d4f7d',accent:'#e48b74',speed:3.0,power:1.4,reach:118},{id:'fallan',name:'FALLAN',style:'sorcerer',desc:'Arcane control and punishing bursts.',color:'#624f98',accent:'#8a9cff',speed:3.0,power:1.3,reach:142},{id:'lynne',name:'LYNNE',style:'gambler',desc:'Unpredictable rhythm and sharp feints.',color:'#9b4b63',accent:'#f2d48a',artHeight:214,speed:4.0,power:.95,reach:118},
   {id:'clephus',name:'CLEPHUS',style:'dark element',desc:'Sigma’s leader controls the battlefield with dark energy.',color:'#e2daf5',accent:'#ac76ff',speed:3.5,power:1.13,reach:127,faction:'Sigma'},
   {id:'karl',name:'KARL',style:'speed and claws',desc:'A ruthless speed fighter with metal claws.',color:'#d7a449',accent:'#e4f0ff',speed:5.15,power:.93,reach:119,faction:'Sigma'},
-  {id:'farrol',name:'FARROL',style:'brawler',desc:'An aggressive brawler with punishing heavy strikes.',color:'#c3c19b',accent:'#ffc181',speed:3.1,power:1.38,reach:116,faction:'Sigma'},
+  {id:'farrol',name:'FARROL',style:'brawler',desc:'An aggressive brawler with punishing heavy strikes.',color:'#c3c19b',accent:'#f2dc4e',speed:3.1,power:1.38,reach:116,faction:'Sigma'},
   {id:'mohammad',name:'MOHAMMAD',style:'mysterious monk',desc:'A hooded Sigma monk who channels arcane seals through his staff.',color:'#ded2f0',accent:'#9cbdff',speed:2.95,power:1.12,reach:136,faction:'Sigma'},
-  {id:'denni',name:'DENNI',style:'heavy equipment',desc:'A brilliant mechanic with a hydraulic gauntlet and heavy tools.',color:'#4a7e83',accent:'#ffae64',speed:2.62,power:1.3,reach:127,faction:'Sigma'}
+  {id:'denni',name:'DENNI',style:'heavy equipment',desc:'A brilliant mechanic with a hydraulic gauntlet and heavy tools.',color:'#4a7e83',accent:'#d9a441',speed:2.62,power:1.3,reach:127,faction:'Sigma'}
 ].map(fighter=>({...fighter,season:1}));
-for(const fighter of seasonTwoFighters){
-  const {story:[openingTitle,opening,endingTitle,ending],intro,win,loss,projectile,super:signature,attacks,...entry}=fighter;
-  roster.push({...entry,season:2});
+const shivaSkillSets=[...seasonTwoFighters,ivanovFighter];
+for(const fighter of shivaSkillSets){
+  const {intro,win,loss,projectile,super:signature,attacks,...entry}=fighter;
+  roster.push({...entry,season:entry.season??2});
   fighterDialogue[entry.id]={intro,win,loss};
-  fighterStories[entry.id]={
-    opening:{title:openingTitle,paragraphs:[opening]},
-    ending:{title:endingTitle,paragraphs:[ending]}
-  };
+}
+for(const {projectile,skills,intro,win,loss,...entry} of seasonThreeFighters){
+  roster.push({...entry,season:3});
+  fighterDialogue[entry.id]={intro,win,loss};
 }
 roster.push({id:'tyrone',name:'TYRONE',style:'morpher',desc:'Season 1’s antagonist transforms into a demon for five seconds.',
   faction:'Villains',season:1,accent:'#ce85ff',speed:3.2,power:1.06,reach:132});
+roster.push({id:'lour',name:'LOUR',faction:'Allies',season:1,style:'healer',
+  desc:'A traveling healer who fights with a staff and restores health with Restorative Light.',
+  accent:'#a9efcf',speed:3.28,power:.97,reach:127,maxHp:96});
+for(const {projectile,skills,intro,win,loss,...entry} of [...seasonFourFighters,...newChallengers]){
+  roster.push({...entry,season:entry.season??4});
+  fighterDialogue[entry.id]={intro,win,loss};
+  storyVoices[entry.id]={intro:intro[0],win:win[0],loss:loss[0]};
+}
+const villainFactions=new Set(['Sigma','Villains','Tyrone’s Court','The Couple']);
+const villainFighters=new Set(['thazar','azazel','shtrgoi','vankov']);
+function rosterSide(fighter) {
+  if(fighter?.id==='karl') return 'heroes';
+  return villainFactions.has(fighter?.faction)||villainFighters.has(fighter?.id)?'villains':'heroes';
+}
+const playableFighters=roster.flatMap((fighter,index)=>fighter.selectable===false?[]:[index]);
 const standaloneFighters=roster.filter(({id,faction})=>(faction&&id!=='tyrone')||id==='jonneil');
 const leftFacingArt=new Set(['bryan','yokan']);
 const $ = id => document.getElementById(id);
 const canvas = $('game'), ctx = canvas.getContext('2d');
+const battleWidth=960, battleHeight=540;
+const phaseDashFighters=new Set(['ivanov','ivanna']);
 const projectilesByFighter = {
   ranelle: {shape:'bullet', label:'Gun shot', speed:18, color:'#ffe29a'},
   lynne: {shape:'card', label:'Cards', speed:10, color:'#ffd67e'},
   miguel: {shape:'arrow', label:'Arrow', speed:14, color:'#d4e6a5'},
   roj: {shape:'holy', label:'Holy Light', speed:12, color:'#fff1a2'},
+  lour: {shape:'holy',label:'Dawnlight Orb',speed:10,color:'#b7ffe1'},
   fallan: {shape:'element', label:'Elements', speed:9, colors:['#ffad71','#80d6ff','#8ef5b7']},
   hope: {shape:'star', label:'Shuriken', speed:13, color:'#b8e6ff'},
   dice: {shape:'shadow', label:'Shadow', speed:8, color:'#ba8aff'},
@@ -243,7 +522,7 @@ const projectilesByFighter = {
   denni: {shape:'piston', label:'Piston Shot', speed:9, color:'#ffb467', blast:48},
   tyrone: {shape:'nebula', label:'Abyss Bolt', speed:10, color:'#ce85ff'}
 };
-for(const {id,projectile} of seasonTwoFighters){
+for(const {id,projectile} of [...shivaSkillSets,...seasonThreeFighters,...seasonFourFighters,...newChallengers]){
   if(projectile) projectilesByFighter[id]=projectile;
 }
 const actions = {left:'Left',right:'Right',jump:'Jump',guard:'Guard',
@@ -270,79 +549,136 @@ for (const id of ['music','effects','track','rounds']) {
     prefs[id] = Number($(id).value);
     save();
     audioUnlock();
-    if (id === 'track') musicStep = 0;
+    if (id === 'track') syncStoryMusic();
     mix();
   };
 }
 
-let audio, musicGain, effectsGain, musicStep = 0, musicTimer;
-const soundtracks = [
-  {beat:180,bass:[38,38,41,36],lead:[62,65,69,72,69,65,60,57]},
-  {beat:145,bass:[45,43,41,43],lead:[69,72,76,74,72,67,64,67]},
-  {beat:215,bass:[36,39,41,34],lead:[60,63,67,70,72,67,65,58]}
-];
-function mix() {
-  if (!audio) return;
-  musicGain.gain.value = prefs.music / 100;
-  effectsGain.gain.value = prefs.effects / 100;
-}
-async function audioUnlock() {
-  const Audio = window.AudioContext || window.webkitAudioContext;
-  if (!Audio) return;
-  if (!audio) {
-    audio = new Audio();
-    musicGain = audio.createGain();
-    effectsGain = audio.createGain();
-    musicGain.connect(audio.destination);
-    effectsGain.connect(audio.destination);
-    mix();
+let audio, effectsGain, music, currentMusic, musicKey;
+const effectBuffers=new Map();
+const previousEffect=new Map();
+function syncStoryMusic() {
+  let song=menuThemes[prefs.track]??menuThemes[0], key='menu:'+prefs.track;
+  if(screen==='storyLibrary'){
+    key='library:'+loreSeason;
+    song=seasonThemes[loreSeason];
+    if(loreView==='fighter'&&lorePreview){
+      key='preview:'+lorePreview;
+      song=fighterTheme(lorePreview);
+    }
+  }else if(screen==='storyPage'&&campaign){
+    key='season:'+campaign.season;
+    song=seasonThemes[campaign.season];
+  }else if(screen==='battle'){
+    const opponent=fighters[1];
+    const transformed=Boolean(opponent.demon||opponent.ascended||opponent.giant||opponent.awakened);
+    key='fight:'+opponent.id+':'+transformed;
+    song=fighterTheme(opponent.id,transformed);
   }
-  try {
-    if (audio.state !== 'running') await audio.resume();
-    if (audio.state === 'running' && !musicTimer) musicTick();
-  } catch {}
+  if(key===musicKey) return;
+  musicKey=key;
+  currentMusic=song;
+  if(music) applyMusic();
+}
+function applyMusic() {
+  const song=currentMusic??menuThemes[0];
+  const src='assets/audio/music/'+song.file+'.mp3';
+  const sourceChanged=music.getAttribute('src')!==src;
+  if(sourceChanged){
+    music.src=src;
+    music.onloadedmetadata=()=>{
+      if(song===currentMusic&&song.offset&&music.duration>song.offset) music.currentTime=song.offset;
+    };
+  }
+  music.defaultPlaybackRate=song.rate??1;
+  music.playbackRate=song.rate??1;
+  if(!sourceChanged&&music.readyState>=1&&song.offset&&music.duration>song.offset) music.currentTime=song.offset;
+  mix();
+}
+function resumeMusic() {
+  if(music&&prefs.music>0&&music.paused) music.play().catch(()=>{});
+}
+function mix() {
+  if(music){
+    music.volume=.62*(prefs.music/100);
+    if(prefs.music===0) music.pause();
+    else resumeMusic();
+  }
+  if(effectsGain) effectsGain.gain.value=prefs.effects/100;
+}
+function preloadEffect(name) {
+  if(!effectBuffers.has(name)){
+    const pending=fetch('assets/audio/effects/'+name+'.mp3')
+      .then(response=>{
+        if(!response.ok) throw new Error('Audio file unavailable');
+        return response.arrayBuffer();
+      })
+      .then(data=>audio.decodeAudioData(data))
+      .catch(()=>null);
+    effectBuffers.set(name,pending);
+  }
+  return effectBuffers.get(name);
+}
+function audioUnlock() {
+  if(!music){
+    music=$('soundtrack');
+    music.preload='auto';
+    applyMusic();
+  }else resumeMusic();
+  const AudioContext=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContext) return;
+  if(!audio){
+    audio=new AudioContext();
+    effectsGain=audio.createGain();
+    const limiter=audio.createDynamicsCompressor();
+    limiter.threshold.value=-12;
+    limiter.ratio.value=6;
+    effectsGain.connect(limiter).connect(audio.destination);
+    mix();
+    for(const name of new Set(Object.values(combatAudio).flat())) preloadEffect(name);
+  }
+  if(audio.state!=='running') audio.resume().catch(()=>{});
 }
 addEventListener('pointerdown',audioUnlock);
 addEventListener('keydown',audioUnlock);
-function note(midi, duration, wave, volume, channel, delay=0, bend=0) {
-  if (!audio || audio.state !== 'running') return;
-  const time = audio.currentTime + delay, voice=audio.createOscillator(), envelope=audio.createGain();
-  const pitch = semitones => 440 * 2 ** ((midi + semitones - 69) / 12);
-  voice.type=wave;
-  voice.frequency.setValueAtTime(pitch(0),time);
-  voice.frequency.exponentialRampToValueAtTime(pitch(bend),time+duration);
-  envelope.gain.setValueAtTime(.001,time);
-  envelope.gain.exponentialRampToValueAtTime(volume,time+.013);
-  envelope.gain.exponentialRampToValueAtTime(.001,time+duration);
-  voice.connect(envelope).connect(channel);
-  voice.start(time);
-  voice.stop(time+duration);
+function sfx(cue) {
+  const options=combatAudio[cue];
+  if(!options||!audio||audio.state!=='running'||prefs.effects===0) return;
+  const previous=previousEffect.get(cue);
+  const next=options.length===1?0:((previous??0)+1+Math.floor(Math.random()*(options.length-1)))%options.length;
+  previousEffect.set(cue,next);
+  const time=audio.currentTime;
+  preloadEffect(options[next]).then(buffer=>{
+    if(!buffer||audio.currentTime-time>.16||screen!=='battle') return;
+    const sound=audio.createBufferSource(), level=audio.createGain();
+    sound.buffer=buffer;
+    sound.playbackRate.value=.95+Math.random()*.10;
+    level.gain.value=attackAudioVolumes[cue]??.58;
+    sound.connect(level).connect(effectsGain);
+    sound.start();
+  });
 }
-function musicTick() {
-  const song=soundtracks[prefs.track], step=musicStep++ % 32;
-  const root=song.bass[Math.floor(step/8)];
-  if (audio.state==='running') {
-    if (step%2===0) note(root+(step%8===6?12:0),.28,'triangle',.15,musicGain);
-    if (step%4===0) note(34,.14,'sine',.19,musicGain,0,-16);
-    if (step%4===2) note(96,.05,'triangle',.055,musicGain,0,-26);
-    if (step%4!==3) note(song.lead[(step+Math.floor(step/8))%8],.16,'triangle',.075,musicGain);
-    if (step%8===0) [0,3,7].forEach(n=>note(root+24+n,.8,'sine',.024,musicGain));
+function startAttackSound(f,move) {
+  if(move.morph){sfx(f.id==='tyrone'?'awaken':'dragon');return;}
+  if(move.type==='super'){sfx(move.animation==='cast'?'super':'heavy');return;}
+  if(move.shot){
+    if(spellProjectiles.has(move.shot.shape)) sfx('cast');
+    return;
   }
-  musicTimer=setTimeout(musicTick,song.beat);
+  if(move.animation==='cast'){sfx('cast');return;}
+  if(weaponFighters.has(f.id)&&!move.kick){sfx('blade');return;}
+  sfx(move.damage>=10?'heavy':'light');
 }
-const effects = {
-  light:[57,-16],heavy:[46,-20],hit:[39,-19],guard:[78,-10],jump:[58,13],dash:[45,12],
-  throw:[75,-19],super:[47,24],ko:[53,-23]
-};
-function sfx(name) {
-  if (!effectsGain) return;
-  const [pitch,bend]=effects[name];
-  note(pitch,name==='ko'||name==='super'?.32:.12,'triangle',.23,effectsGain,0,bend);
-  if (['hit','super','guard','ko'].includes(name)) note(pitch+16,.10,'sawtooth',.045,effectsGain,.025,bend);
+function hitSound(attacker,defender,type,{blocked,projectile,amount}) {
+  if(blocked) return type==='super'?'ward':weaponFighters.has(attacker.id)&&!projectile?'parry':'guard';
+  if(armoredFighters.has(defender.id)) return 'armor';
+  if(projectile&&projectilesByFighter[attacker.id]?.shape==='arrow') return 'arrow';
+  if(type.endsWith('k')) return 'kick';
+  if(!projectile&&type==='lp'&&amount<8) return 'punch';
+  return type==='super'||amount>=17?'impact':'strike';
 }
-
 const loadImage = src => new Promise((resolve,reject)=>{
-  const image = new Image();
+  const image=new Image();
   image.onload=()=>resolve(image);
   image.onerror=()=>reject(new Error(src));
   image.src=src;
@@ -423,13 +759,39 @@ const arenaCatalog=[
   ['semmenelin-lair','Semmenelin’s Lair'],['hades-gate','Gate of Hades'],
   ['shiva-crystal-gorge','Shiva World · Crystal Gorge',.76],
   ['shiva-sky-sanctuary','Shiva World · Sky Sanctuary',.733],
-  ['shiva-aurora-fortress','Shiva World · Aurora Fortress',.756]
+  ['shiva-aurora-fortress','Shiva World · Aurora Fortress',.756],
+  ['ifrit-gate','Ifrit · Genesis Gate',.72],
+  ['ifrit-causeway','Ifrit · Glass Causeway',.72],
+  ['ifrit-city','Ifrit · Lantern City',.72],
+  ['ifrit-sanctuary','Ifrit · Sol Sanctuary',.72],
+  ['ifrit-tower','Ifrit · Ash Tower',.72],
+  ['ifrit-prison','Ifrit · Cult Prison',.72],
+  ['ifrit-archive','Ifrit · Relay Archive',.72],
+  ['ifrit-forge','Ifrit · Basalt Forge',.72],
+  ['ifrit-bastion','Ifrit · Dawn Bastion',.72],
+  ['ifrit-altar','Ifrit · Throne of Hell',.72],
+  ['earth-tartarus-station','Tartarus Station',.76],
+  ['earth-otaio-pass','Mountains of Otaio',.74],
+  ['earth-gavarra-throne','Gavarra · Tyrone’s Throne',.76],
+  ['shiva-patria-lagoon','Shiva · Lagoon Forest',.80],
+  ['shiva-klux-laboratory','Shiva · Klux Laboratory',.76],
+  ['shiva-soul-factory','Shiva · Soul Factory',.76],
+  ['shiva-khan-temple','Shiva · Khan’s Temple',.76],
+  ['shiva-gensys-annex','Shiva · Gensys Auxiliary Dock',.76],
+  ['shiva-nedo','Shiva · City of Nedo',.76],
+  ['shiva-boulder-tunnel','Shiva · Boulder City Rail Tunnel',.76],
+  ['ifrit-couple-crossing','Ifrit · The Couple’s Crossing',.75],
+  ['ifrit-tower-breach','Ifrit · Ash Tower Breach',.76],
+  ['zig-transit','Zig · Transit Terminal',.76],
+  ['zig-foundry','Zig · Undercity Foundry',.75],
+  ['zig-causeway','Zig · Relay Causeway',.75],
+  ['zig-array','Zig · Ivan Array',.75],
+  ['zig-reactor','Zig · Seven-Core Reactor',.75]
 ];
 const lairIndex=arenaCatalog.findIndex(([asset])=>asset==='semmenelin-lair');
 const hadesIndex=arenaCatalog.findIndex(([asset])=>asset==='hades-gate');
 const normalArenas=arenaCatalog.map((_,i)=>i).filter(i=>i!==lairIndex&&i!==hadesIndex);
-const shivaArenas=normalArenas.filter(i=>arenaCatalog[i][0].startsWith('shiva-'));
-const originalArenas=normalArenas.filter(i=>!shivaArenas.includes(i));
+const arenaIndices=new Map(arenaCatalog.map(([asset],index)=>[asset,index]));
 function standaloneSprite(image) {
   const surface=document.createElement('canvas');
   surface.width=image.naturalWidth;
@@ -439,7 +801,7 @@ function standaloneSprite(image) {
   return trimSprite(surface,pen);
 }
 Promise.all([loadPunchArtwork(),loadActionArtwork(),Promise.all(['cast-roster','hope-male','ranelle-gunner','bennedic-beast','semmenelin','tyrone','tyrone-demon','enigma-rift','apollo-spirit',
-  ...standaloneFighters.map(fighter=>fighter.id),...arenaCatalog.map(([asset])=>asset)].map(name=>loadImage('assets/'+name+(name.startsWith('shiva-')?'.jpg':'.png'))))])
+  ...standaloneFighters.map(fighter=>fighter.id),...arenaCatalog.map(([asset])=>asset)].map(name=>loadImage('assets/'+name+(/^(earth|shiva|ifrit|zig)-/.test(name)?'.jpg':name==='honey'?'.png?rev=ifrit':'.png'))))])
   .then(([,,[sheet,hope,ranelle,beast,dragon,tyrone,tyroneDemon,enigmaRift,apollo,...artwork]])=>{
     const portraits={hope,ranelle,tyrone};
     standaloneFighters.forEach(({id},i)=>{portraits[id]=artwork[i]});
@@ -448,6 +810,7 @@ Promise.all([loadPunchArtwork(),loadActionArtwork(),Promise.all(['cast-roster','
       const sprite=portraits[id]?standaloneSprite(portraits[id]):makeSprite(sheet,i);
       sprites.push(leftFacingArt.has(id)?flipSprite(sprite):sprite);
     });
+    applyFighterTints(sprites);
     sprites.forEach(sprite=>mirrorSprites.push(makeMirrorSprite(sprite)));
     beastSprite=standaloneSprite(beast);
     mirrorBeastSprite=makeMirrorSprite(beastSprite);
@@ -460,13 +823,59 @@ Promise.all([loadPunchArtwork(),loadActionArtwork(),Promise.all(['cast-roster','
     apolloSprite=standaloneSprite(apollo);
     stages.push(...backgrounds);
     renderRoster();
+    if(screen==='storyLibrary'&&loreView==='fighter') renderLoreFighter();
     $('fight').disabled=false;
     $('assetStatus').textContent='';
   }).catch(()=>{ $('assetStatus').textContent='Could not load game artwork. Refresh to retry.'; });
 
-const modePicks={arcade:[0,1],story:[0],tag:[0,1,2,3]};
+const modePicks={arcade:[0,null],story:[0],tag:[0,1,2,3]};
+const modeCostumes={arcade:[null,null],story:[null],tag:[null,null,null,null]};
+let matchCostumes=[], godMode=false, godNoticeTimer, pendingBattle=null;
+function defaultCostume() {
+  return gameMode==='story'&&storySeason<4?storySeason-1:0;
+}
+function cpuSeatsForMode(story,mode=$('mode').value) {
+  return [!story&&mode==='spectate',story||mode==='cpu'||mode==='spectate'];
+}
+function automaticCostume(slot,cpuSeats=cpuSeatsForMode(false)) {
+  return gameMode!=='story'&&cpuSeats[slot%2]&&modeCostumes[gameMode][slot]===null;
+}
+function randomCostume(id,blocked) {
+  const eligible=costumeOptions(id).filter(({slot})=>!blocked.has(slot));
+  return eligible[Math.floor(Math.random()*eligible.length)]?.slot??0;
+}
+function resolveMatchCostumes(picks,cpuSeats) {
+  const choices=picks.map((_,slot)=>automaticCostume(slot,cpuSeats)?null:
+    assignedCostume(slot,picks,defaultCostume(),cpuSeats));
+  picks.forEach((index,slot)=>{
+    if(choices[slot]!==null) return;
+    const blocked=new Set(choices.filter((costume,other)=>
+      costume!==null&&other%2!==slot%2&&picks[other]===index));
+    choices[slot]=randomCostume(roster[index].id,blocked);
+  });
+  return choices;
+}
+function assignedCostume(pickIndex,picks,fallback=defaultCostume(),cpuSeats) {
+  const index=picks[pickIndex];
+  const chosen=modeCostumes[gameMode][pickIndex]??fallback;
+  return Number.isInteger(index)?
+    differentCostume(roster[index].id,chosen,opponentCostumeSlots(pickIndex,picks,fallback,cpuSeats)):chosen;
+}
+function opponentCostumeSlots(pickIndex,picks,fallback,cpuSeats) {
+  if(pickIndex%2===0||picks[pickIndex]===null) return new Set();
+  const slots=picks.flatMap((fighter,index)=>index%2===0&&fighter===picks[pickIndex]&&!automaticCostume(index,cpuSeats)?
+    [modeCostumes[gameMode][index]??fallback]:[]);
+  return new Set(slots);
+}
+function selectRosterCostume(index,slot) {
+  const fighter=roster[index];
+  const source=fighter.id==='roj'&&slot===2?
+    sprites[roster.findIndex(entry=>entry.id==='roj-demon')]:sprites[index];
+  return outfitFrame(fighter.id,slot,'idle')??source;
+}
 let screen='splash', gameMode='arcade', storySeason=1, pick=0, selected=modePicks.arcade, matchPicks=[], waitingForKey=null;
-let dialogue=null, interlude=null;
+let dialogue=null, interlude=null, storyAdvanceAt=0;
+let loreSeason=1, loreView='season', lorePreview=null;
 const held=new Set(), tapped=new Set(), touchHeld=new Set();
 const touchPointers=new Map();
 let joystickPointer=null;
@@ -503,8 +912,17 @@ function registerJumpTap(player,time,source) {
   } else jumpTaps[player]={time,source};
 }
 function show(next) {
-  for(const id of ['splash','menu','settings','help','select','storyPage','battle']) $(id).hidden=id!==next;
+  storyAdvanceAt=0;
+  for(const id of ['splash','menu','settings','help','select','storyPage','storyLibrary','battle']) $(id).hidden=id!==next;
+  if(next!==screen) pendingBattle=null;
   screen=next;
+  syncStoryMusic();
+  if(next!=='battle'){
+    clearTimeout(godNoticeTimer);
+    $('godNotice').hidden=true;
+    $('game').parentElement.classList.remove('god-flash');
+  }
+  if(next==='menu'||next==='select') godMode=false;
   dialogue=null;
   interlude=null;
   $('speechBubble').hidden=true;
@@ -514,6 +932,7 @@ function show(next) {
   $('combo0').hidden=$('combo1').hidden=true;
   waitingForKey=null;
   clearGameInput();
+  if(next!=='battle'&&document.fullscreenElement===$('battle')) document.exitFullscreen().catch(()=>{});
   if(next==='select') renderRoster();
   $(next).querySelector('button:not(:disabled)')?.focus({preventScroll:true});
 }
@@ -521,7 +940,8 @@ $('continue').onclick=()=>{audioUnlock();show('menu')};
 $('openHelp').onclick=()=>{renderControls();show('help')};
 $('helpBack').onclick=()=>show('menu');
 $('helpFighter').onchange=renderControls;
-for(const fighter of roster){
+for(const index of playableFighters){
+  const fighter=roster[index];
   const option=document.createElement('option');
   option.value=fighter.id;option.textContent=fighterDisplayName(fighter);
   $('helpFighter').append(option);
@@ -529,17 +949,94 @@ for(const fighter of roster){
 $('arcadeMode').onclick=()=>openSelection('arcade');
 $('storyMode').onclick=()=>openSelection('story');
 $('tagMode').onclick=()=>openSelection('tag');
+$('openStoryLibrary').onclick=()=>{
+  lorePreview=null;
+  renderStoryLibrary();
+  show('storyLibrary');
+};
+$('storyLibraryBack').onclick=()=>show('menu');
+$('storyLibrary').addEventListener('click',event=>{
+  const {loreSeason:season,loreView:view}=event.target.dataset;
+  if(!season&&!view) return;
+  if(season) loreSeason=Number(season);
+  if(view) loreView=view;
+  lorePreview=null;
+  renderStoryLibrary();
+  syncStoryMusic();
+});
+$('loreFighter').onchange=()=>{
+  lorePreview=null;
+  renderLoreFighter();
+  syncStoryMusic();
+};
+$('loreTheme').onclick=()=>{
+  lorePreview=lorePreview?null:roster[Number($('loreFighter').value)].id;
+  renderLoreFighter();
+  syncStoryMusic();
+};
+function textBlock(tag,text) {
+  const element=document.createElement(tag);
+  element.textContent=text;
+  return element;
+}
+function showParagraphs(id,paragraphs) {
+  $(id).replaceChildren(...paragraphs.map(text=>textBlock('p',text)));
+}
+function renderStoryLibrary() {
+  const {title,world,opening,chapters,ending}=seasonStories[loreSeason];
+  const library=$('storyLibrary'), select=$('loreFighter');
+  library.dataset.season=loreSeason;
+  for(const button of library.querySelectorAll('[data-lore-season],[data-lore-view]')){
+    button.setAttribute('aria-pressed',Number(button.dataset.loreSeason)===loreSeason||button.dataset.loreView===loreView);
+  }
+  $('loreSeasonPage').hidden=loreView!=='season';
+  $('loreFighterPage').hidden=loreView!=='fighter';
+  if(loreView==='fighter'){
+    const previous=select.value;
+    const related=guestStoryStakes[loreSeason];
+    const eligible=roster.map((fighter,index)=>({fighter,index}))
+      .filter(({fighter})=>fighter.season===loreSeason||related[fighter.id])
+      .sort((a,b)=>a.fighter.name.localeCompare(b.fighter.name));
+    select.replaceChildren(...eligible.map(({fighter,index})=>{
+      const option=textBlock('option',fighterDisplayName(fighter));
+      option.value=index;
+      return option;
+    }));
+    if(eligible.some(({index})=>String(index)===previous)) select.value=previous;
+    renderLoreFighter();
+    return;
+  }
+  $('loreWorld').textContent=world;
+  $('loreSeasonTitle').textContent=title;
+  showParagraphs('loreOverview',opening??ifritStoryOpening.paragraphs);
+  $('loreChapters').replaceChildren(...chapters.map(([name,summary])=>{
+    const section=document.createElement('section');
+    section.append(textBlock('h4',name),textBlock('p',summary));
+    return section;
+  }));
+  const finalChapter=ending??ifritStoryEnding;
+  $('loreEndingTitle').textContent=finalChapter.title;
+  showParagraphs('loreEnding',finalChapter.paragraphs);
+}
+function renderLoreFighter() {
+  const index=Number($('loreFighter').value), fighter=roster[index];
+  const {title,biography,stake}=fighterStory(fighter,loreSeason,seasonThreeFighters);
+  $('loreFighterTitle').textContent=title;
+  const closing=characterEpilogues[loreSeason][fighter.id];
+  showParagraphs('loreFighterCopy',[biography,stake,...(closing?[closing]:[])]);
+  drawStoryPortrait(index,'lorePortrait');
+  $('loreTheme').textContent=(lorePreview?'Stop ':'Play ')+fighterThemes[fighter.id][0];
+  $('loreTheme').setAttribute('aria-pressed',Boolean(lorePreview));
+}
 function openSelection(mode) {
   gameMode=mode;
   selected=modePicks[mode];
   pick=0;
   const story=mode==='story';
   $('selectTitle').textContent=story?'Story Mode':mode==='tag'?'Tag Team':'Arcade Mode';
-  $('storyHelp').hidden=!story;
   $('storySeasonChoice').hidden=!story;
   $('rosterFilter').hidden=story;
-  updateStoryHelp();
-  $('arenaHelp').textContent=story?'Each level has one arena.':'Arena is randomized each round.';
+  updateCampaignButtons();
   $('pick1').hidden=story;
   $('pick2').hidden=mode!=='tag';
   $('pick3').hidden=mode!=='tag';
@@ -551,21 +1048,19 @@ function openSelection(mode) {
 $('openSettings').onclick=()=>{renderBindings();show('settings')};
 $('settingsBack').onclick=$('selectBack').onclick=$('leave').onclick=()=>show('menu');
 $('changeFighters').onclick=()=>openSelection(gameMode);
-function updateStoryHelp() {
-  const milestones=storySeason===2?'Gensys at level 5 and Enigma at level 10.':
-    'Semmenelin at level 5 and Tyrone at level 10.';
-  $('storyHelp').textContent='Pick any fighter. All opponents are from Season '+storySeason+'. Face '+milestones;
-  for(const season of [1,2]) $('storySeason'+season).setAttribute('aria-pressed',season===storySeason);
+function updateCampaignButtons() {
+  for(const season of [1,2,3,4]) $('storySeason'+season).setAttribute('aria-pressed',season===storySeason);
 }
-for(const season of [1,2]){
+for(const season of [1,2,3,4]){
   $('storySeason'+season).onclick=()=>{
     storySeason=season;
-    updateStoryHelp();
+    updateCampaignButtons();
+    renderRoster();
   };
 }
 $('rosterSeason').onchange=renderRoster;
 function updateDifficulty() { $('difficulty').hidden=gameMode!=='story'&&$('mode').value==='human'; }
-$('mode').onchange=updateDifficulty;
+$('mode').onchange=()=>{updateDifficulty();renderRoster()};
 $('restore').onclick=()=>{prefs.bindings=defaults.map(b=>({...b}));waitingForKey=null;save();renderBindings()};
 function renderBindings() {
   $('bindings').replaceChildren();
@@ -587,38 +1082,46 @@ function renderBindings() {
   });
 }
 function renderRoster() {
-  for(let i=0;i<4;i++){
-    const slot=gameMode==='tag'?['P1 Lead','P2 Lead','P1 Partner','P2 Partner'][i]:'P'+(i+1);
-    $('pick'+i).textContent=slot+' · '+(roster[selected[i]]?.name||'Random');
+  const roles=gameMode==='tag'?['P1 Lead','P2 Lead','P1 Partner','P2 Partner']:['P1','P2'];
+  for(let i=0;i<roles.length;i++){
+    const fighter=roster[selected[i]];
+    const outfit=automaticCostume(i)?'Random Costume':fighter?costumeOptions(fighter.id)[assignedCostume(i,selected)]?.name:null;
+    $('pick'+i).textContent=roles[i]+' · '+(fighter?.name||'Random')+(outfit?' · '+outfit:'');
     $('pick'+i).setAttribute('aria-pressed',pick===i);
     $('pick'+i).onclick=()=>{pick=i;renderRoster()};
   }
   const season=gameMode==='story'?'all':$('rosterSeason').value;
-  $('roster').replaceChildren();
-  roster.forEach((fighter,i)=>{
-    if(season!=='all'&&Number(season)!==fighter.season) return;
+  const sides={heroes:$('heroesRoster'),villains:$('villainsRoster')};
+  for(const side of Object.values(sides)) side.replaceChildren();
+  for(const i of playableFighters){
+    const fighter=roster[i];
+    if(season!=='all'&&Number(season)!==fighter.season) continue;
     const button=document.createElement('button'), portrait=document.createElement('canvas');
     button.className='fighter';
     button.setAttribute('aria-pressed',selected[pick]===i);
     portrait.width=96; portrait.height=96;
     portrait.setAttribute('aria-hidden','true');
-    const alternate=gameMode==='arcade'&&pick===1&&selected[0]===i;
-    const sprite=(alternate?mirrorSprites:sprites)[i];
+    const sprite=sprites[i];
     if(sprite) paintHead(portrait.getContext('2d'),sprite,fighter.id);
-    button.append(portrait,fighter.name);
+    button.append(portrait,textBlock('span',fighter.name));
     const item=projectilesByFighter[fighter.id];
     button.title=[fighter.faction,fighter.id==='ranelle'?'gunner':fighter.style,item?.label].filter(Boolean).join(' · ');
     button.onclick=()=>{
+      const costumes=modeCostumes[gameMode];
       if(gameMode==='tag'){
         const partner=pick^2;
-        if(selected[partner]===i) selected[partner]=selected[pick];
+        if(selected[partner]===i){
+          selected[partner]=selected[pick];
+          costumes[partner]=costumes[pick];
+        }
       }
+      if(selected[pick]!==i) costumes[pick]=null;
       selected[pick]=i;
       renderRoster();
       $('roster').querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
     };
-    $('roster').append(button);
-  });
+    sides[rosterSide(fighter)].append(button);
+  }
   if(gameMode!=='tag'){
     const random=document.createElement('button'), silhouette=document.createElement('span');
     random.className='fighter';
@@ -627,14 +1130,89 @@ function renderRoster() {
     silhouette.className='random-portrait';
     silhouette.setAttribute('aria-hidden','true');
     silhouette.textContent='?';
-    random.append(silhouette,'Random');
+    random.id='randomFighter';
+    random.append(silhouette,textBlock('span','Random'));
     random.onclick=()=>{
+      if(selected[pick]!==null) modeCostumes[gameMode][pick]=null;
       selected[pick]=null;
       renderRoster();
-      $('roster').lastElementChild.focus({preventScroll:true});
+      $('randomFighter').focus({preventScroll:true});
     };
-    $('roster').append(random);
+    sides.heroes.append(random);
   }
+  renderWardrobe(roles[pick]);
+}
+function renderWardrobe(role) {
+  const index=selected[pick], fighter=roster[index];
+  const options=fighter?costumeOptions(fighter.id):[0,1,2].map(slot=>({slot,name:'Random fighter'}));
+  const cpu=gameMode!=='story'&&cpuSeatsForMode(false)[pick%2];
+  const random=cpu&&automaticCostume(pick);
+  const active=random?null:assignedCostume(pick,selected);
+  $('cpuCostumeChoice').hidden=!cpu;
+  const auto=$('cpuCostumeAuto');
+  auto.setAttribute('aria-pressed',Boolean(random));
+  auto.onclick=()=>{
+    modeCostumes[gameMode][pick]=null;
+    renderRoster();
+  };
+  const blocked=opponentCostumeSlots(pick,selected,defaultCostume());
+  $('wardrobeLegend').textContent=role+' Costume · '+(fighter?fighterDisplayName(fighter):'Random');
+  $('wardrobe').dataset.side=rosterSide(fighter);
+  const choices=$('wardrobeChoices');
+  choices.replaceChildren(...options.map(({name,slot})=>{
+    const card=document.createElement('button');
+    card.type='button';
+    card.className='wardrobe-card';
+    card.disabled=blocked.has(slot);
+    card.setAttribute('aria-pressed',slot===active);
+    const portrait=document.createElement('canvas');
+    portrait.width=190;
+    portrait.height=154;
+    portrait.setAttribute('aria-hidden','true');
+    const paint=()=>{
+      const sprite=fighter?selectRosterCostume(index,slot):null;
+      if(sprite) paintSprite(portrait.getContext('2d'),sprite,95,151,Math.min(146,176*sprite.h/sprite.w));
+    };
+    const pending=fighter&&ensureOutfitArt(fighter.id,slot);
+    if(pending) pending.then(()=>{if(portrait.isConnected) paint();}).catch(()=>{});
+    else paint();
+    card.append(portrait,textBlock('strong',name));
+    card.onclick=()=>{
+      modeCostumes[gameMode][pick]=slot;
+      renderRoster();
+      choices.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+    };
+    return card;
+  }));
+}
+function hasGodMode(fighter) {
+  return godMode&&fighter.seat===0;
+}
+function toggleP1GodMode(event) {
+  if(event.code!=='Digit0'||!event.shiftKey||event.altKey||event.ctrlKey||event.metaKey||
+      screen!=='battle'||match.cpuSeats[0]||!$('result').hidden) return false;
+  event.preventDefault();
+  if(event.repeat) return true;
+  godMode=!godMode;
+  if(godMode){
+    for(const fighter of match.teams[0]){
+      if(fighter.hp>0){
+        fighter.hp=fighter.maxHp;
+        fighter.skill=maxSkill;
+      }
+    }
+    updateHud();
+  }
+  const notice=$('godNotice'), arena=$('game').parentElement;
+  notice.textContent=godMode?'P1 God Mode On':'P1 God Mode Off';
+  notice.hidden=false;
+  arena.classList.toggle('god-flash',godMode);
+  clearTimeout(godNoticeTimer);
+  godNoticeTimer=setTimeout(()=>{
+    notice.hidden=true;
+    arena.classList.remove('god-flash');
+  },950);
+  return true;
 }
 addEventListener('keydown',event=>{
   if(waitingForKey) {
@@ -651,6 +1229,7 @@ addEventListener('keydown',event=>{
     }
     waitingForKey=null; renderBindings(); return;
   }
+  if(toggleP1GodMode(event)) return;
   if(!acceptsFightInput()||event.ctrlKey||event.metaKey||event.altKey) return;
   if(!prefs.bindings.some((map,player)=>!match.cpuSeats[player]&&Object.values(map).includes(event.code))) return;
   event.preventDefault();
@@ -745,7 +1324,7 @@ for(const [action,label] of Object.entries(touchLabels)){
   $('touchAction').append(button);
 }
 
-const floor=390, maxSkill=100, fixedStep=1000/60;
+const floor=390, maxSkill=100, fixedStep=1000/60, walkCycle=64;
 const comboWindow=54, comboDisplay=85, projectileDamageScale=.6;
 let battleVisualTime=0;
 const attacks={
@@ -768,45 +1347,36 @@ const fighterAttacks={
   farrol:{hp:{damage:16,reach:15},hk:{damage:17,rest:27}},
   denni:{hp:{wind:16,damage:18,reach:22},throw:{wind:20,rest:28,damage:12}}
 };
-for(const {id,attacks} of seasonTwoFighters){
+for(const {id,attacks} of shivaSkillSets){
   if(attacks) fighterAttacks[id]=attacks;
 }
-const equipment={
-  bryan:{blade:'spear',label:'Spear',grip:[.70,.43],length:116,color:'#c7d9e9'},
-  ranelle:{blade:'knife',label:'Knife',grip:[.53,.43],length:39,color:'#dce8ef'},
-  yokan:{blade:'ice',label:'Ice Sword',grip:[.72,.41],length:105,color:'#9be6ff'},
-  roj:{blade:'holy',label:'Holy Swords',grip:[.74,.42],length:89,color:'#fff2a9'}
-};
-function equipmentFor(f,move) {
-  const gear=equipment[f.id];
-  if(!gear||!move||move.kick) return null;
-  if(f.id==='ranelle'){
-    const shot=move.shot?.shape||(move.type==='super'?'missile':null);
-    if(shot) return {...gear,blade:shot==='bullet'?'gun':shot==='missile'?'launcher':'grenade'};
-    return gear;
-  }
-  if(f.id==='roj'&&move.type==='throw') return gear;
-  if(move.shot) return null;
-  return gear;
+const equipmentNames={lour:'Staff',bryan:'Spear',ranelle:'Knife',yokan:'Buster Sword',roj:'Twin Swords',fernan:'Curved Sword','roj-demon':'Twin Swords'};
+function gunnerEquipmentFor(f,move) {
+  if(f.id!=='ranelle'||!move||move.kick) return null;
+  const shot=move.shot?.shape||(move.type==='super'?'missile':null);
+  const blade=shot==='bullet'?'gun':shot==='missile'?'launcher':shot?'grenade':'knife';
+  return {blade,grip:[.53,.43],length:39,color:'#dce8ef'};
 }
 const signatureSupers={
-  tyrone:{name:'Abyssal Rupture',wind:24,beats:[{at:24,damage:34,shot:'nebula',speed:11}],recovery:33},
+  lour:{name:'Divine Will',wind:20,range:270,magic:true,targeted:true,effect:'rings',
+    beats:[{at:20,damage:21},{at:31,damage:24}]},
+  tyrone:{name:'Gate of Hades',wind:24,beats:[{at:24,damage:34,shot:'nebula',speed:11}],recovery:33},
   semmenelin:{name:'Dragonfire',wind:25,beats:[25,33,41].map(at=>({at,damage:10,shot:'dragonfire',speed:11})),recovery:36},
-  bryan:{name:'Giant Spear Bash',wind:18,range:245,beats:[{at:18,damage:45}]},
-  jonneil:{name:'Million Punch',wind:12,range:149,beats:[12,17,22,27,32,37].map(at=>({at,damage:7.5}))},
-  ranelle:{name:'Kirov Missile',wind:17,beats:[{at:17,damage:45,shot:'missile',speed:17}]},
-  dice:{name:'Shadow Party',wind:17,range:270,beats:[17,27,37].map(at=>({at,damage:15}))},
-  yokan:{name:'Frozenehart',wind:13,range:200,beats:[{at:13,freeze:true},{at:33,damage:45}]},
-  roj:{name:'Apocalypsis',wind:15,range:225,beats:[{at:29,damage:45}]},
-  hope:{name:'Nebula',wind:14,beats:[{at:14,damage:45,shot:'nebula',speed:11}]},
-  fallan:{name:'Apollo',wind:18,range:640,beats:[18,28,38].map((at,i)=>({at,damage:15,color:['#ff855b','#7fe3ff','#bc9aff'][i]}))},
-  bennedic:{name:'Morph',wind:11,beats:[]},
-  lynne:{name:'Rapid Cards',wind:11,beats:[11,15,19,23,27,31].map(at=>({at,damage:7.5,shot:'card',speed:17}))},
-  clephus:{name:'Black Dominion',wind:22,range:360,beats:[{at:22,damage:44}]},
+  bryan:{name:'Vanguard Spear',wind:18,range:245,beats:[{at:18,damage:45}]},
+  jonneil:{name:'Thousand Fists of Khan',wind:12,range:149,beats:[12,17,22,27,32,37].map(at=>({at,damage:7.5}))},
+  ranelle:{name:'Skyblender Strike',wind:17,beats:[{at:17,damage:45,shot:'missile',speed:17}]},
+  dice:{name:'Shadow Ambush',wind:17,range:270,beats:[17,27,37].map(at=>({at,damage:15}))},
+  yokan:{name:'Frozen Heart',wind:13,range:200,beats:[{at:13,freeze:true},{at:33,damage:45}]},
+  roj:{name:'Dawnbreaker',wind:15,range:225,beats:[{at:29,damage:45}]},
+  hope:{name:'Stolen Nebula',wind:14,beats:[{at:14,damage:45,shot:'nebula',speed:11}]},
+  fallan:{name:'Apollo’s Answer',wind:18,range:640,beats:[18,28,38].map((at,i)=>({at,damage:15,color:['#ff855b','#7fe3ff','#bc9aff'][i]}))},
+  bennedic:{name:'Unleash the Beast',wind:11,beats:[]},
+  lynne:{name:'Final Deal',wind:11,beats:[11,15,19,23,27,31].map(at=>({at,damage:7.5,shot:'card',speed:17}))},
+  clephus:{name:'Sigma Dominion',wind:22,range:360,beats:[{at:22,damage:44}]},
   karl:{name:'Razor Rush',wind:10,range:152,beats:[10,14,18,22,26,30].map(at=>({at,damage:7.5}))},
   farrol:{name:'Groundbreaker',wind:21,range:179,beats:[{at:21,damage:46}]},
-  mohammad:{name:'Astral Verdict',wind:19,range:475,beats:[19,27,35].map(at=>({at,damage:15}))},
-  denni:{name:'Hydraulic Overdrive',wind:24,range:223,beats:[{at:24,damage:46}]}
+  mohammad:{name:'Seal of the Breach',wind:19,range:475,beats:[19,27,35].map(at=>({at,damage:15}))},
+  denni:{name:'Piston Overdrive',wind:24,range:223,beats:[{at:24,damage:46}]}
 };
 let lastStage=-1;
 let fighters=[], shots=[], sparks=[], match, tick=0, roundOver=0, accumulator=0, previous=0, shake=0, roundClock=0;
@@ -814,108 +1384,199 @@ let superEffects=[];
 const dragonBoss={id:'semmenelin',name:'SEMMENELIN',season:1,style:'Dragon',speed:2.3,power:1.05,reach:148,accent:'#ff9f54',maxHp:125};
 const tyroneBoss={id:'tyrone',name:'TYRONE',season:1,style:'Morpher',speed:3.2,power:1.06,reach:132,accent:'#ce85ff',maxHp:116};
 const tyroneDemon={...tyroneBoss,style:'Demon',speed:3.0,power:1.22,reach:151,maxHp:125};
-for(const {id,super:signature} of seasonTwoFighters) signatureSupers[id]=signature;
+for(const {id,super:signature} of shivaSkillSets) signatureSupers[id]=signature;
+for(const {id,skills:[first,second]} of [...seasonThreeFighters,...seasonFourFighters,...newChallengers]){
+  signatureSupers[id]=first;
+  secondSupers[id]=second;
+}
 const storyLength=10;
 const storyBosses={
   1:[
-    {level:4,id:'semmenelin',opponent:'semmenelin',arena:lairIndex},
-    {level:9,id:'tyrone',opponent:'tyrone',arena:hadesIndex}
+    {level:4,id:'semmenelin',opponent:'semmenelin'},
+    {level:9,id:'tyrone',opponent:'tyrone'}
   ],
   2:[
-    {level:4,id:'gensys',arena:arenaCatalog.findIndex(([id])=>id==='lambda-industrial'),hp:115},
-    {level:8,id:'asmodeus',arena:lairIndex,hp:120},
-    {level:9,id:'enigma',arena:hadesIndex,hp:126}
-  ]
+    {level:4,id:'gensys',hp:115},
+    {level:8,id:'asmodeus',hp:120},
+    {level:9,id:'enigma',hp:126}
+  ],
+  3:[{level:4,id:'roj-demon',hp:114},{level:9,id:'azazel',hp:124}],
+  4:[{level:4,id:'shtrgoi',hp:112},{level:9,id:'vankov',hp:118}]
 };
 const koTicks=76;
 let campaign=null;
-function sampleWithoutReplacement(pool,count) {
-  const sample=[];
-  for(let i=0;i<count;i++){
-    const choice=Math.floor(Math.random()*pool.length);
-    sample.push(pool.splice(choice,1)[0]);
+function buildStoryCampaign(season,player) {
+  const bosses=storyBosses[season];
+  const stages=season===3?ifritStoryStages:season===4?zigStages:campaignScenes[season];
+  const arenas=stages.map(stage=>arenaIndices.get(stage.arena??stage[0]));
+  const byId=new Map(roster.map(({id},index)=>[id,index]));
+  const route=Array(storyLength);
+  const used=new Set();
+  for(const {level,id,opponent} of bosses){
+    route[level]=opponent??byId.get(id);
+    used.add(id);
   }
-  return sample;
-}
-function startGame() {
-  matchPicks=selected.map(index=>index===null?Math.floor(Math.random()*roster.length):index);
-  const player=matchPicks[0];
-  campaign=null;
-  if(gameMode==='story'){
-    const season=storySeason;
-    const bosses=storyBosses[season];
-    const bossIds=new Set(bosses.map(({id})=>id));
-    const candidates=roster.flatMap((fighter,index)=>
-      index!==player&&fighter.season===season&&!bossIds.has(fighter.id)?[index]:[]
-    );
-    const regularLevels=storyLength-bosses.length;
-    const route=sampleWithoutReplacement(candidates,regularLevels);
-    const availableArenas=originalArenas.filter(arena=>!bosses.some(boss=>boss.arena===arena));
-    const shivaStops=season===2?shivaArenas:[];
-    const classicStops=sampleWithoutReplacement(availableArenas,regularLevels-shivaStops.length);
-    const arenas=sampleWithoutReplacement([...classicStops,...shivaStops],regularLevels);
-    for(const {level,id,opponent,arena} of bosses){
-      const rosterIndex=opponent??roster.findIndex(fighter=>fighter.id===id&&fighter.season===season);
-      route.splice(level,0,rosterIndex);
-      arenas.splice(level,0,arena);
+  // Reserve future matches while choosing among the fighters present in each scene.
+  function choose(level) {
+    if(level===storyLength) return true;
+    if(bosses.some(boss=>boss.level===level)) return choose(level+1);
+    const candidates=storyStageOpponents[season][level];
+    const first=Math.floor(Math.random()*candidates.length);
+    const persona=season===4&&zigStages[level].persona;
+    for(let i=0;i<candidates.length;i++){
+      const id=candidates[(first+i)%candidates.length];
+      const identity=persona?.name??id;
+      if(used.has(identity)||(byId.get(id)===player&&!persona)) continue;
+      route[level]=byId.get(id);
+      used.add(identity);
+      if(choose(level+1)) return true;
+      used.delete(identity);
     }
-    campaign={level:0,player,route,arenas,season,bosses};
+    return false;
   }
+  if(!choose(0)) throw new Error('No valid story route for Season '+season);
+  return {level:0,player,route,arenas,season,bosses};
+}
+
+function startGame() {
+  matchPicks=selected.map(index=>index===null?playableFighters[Math.floor(Math.random()*playableFighters.length)]:index);
+  if(gameMode==='story') matchCostumes=[assignedCostume(0,matchPicks)];
+  godMode=false;
+  campaign=gameMode==='story'?buildStoryCampaign(storySeason,matchPicks[0]):null;
   if(campaign) showStoryPage('opening');
   else freshMatch();
 }
+function storyMatchContext() {
+  const {season,level,player,route}=campaign;
+  const rival=roster[route[level]]?.id??route[level];
+  const playerId=roster[player].id;
+  const innerFight=level===4&&rival==='roj-demon'&&playerId==='roj';
+  const bossReplay=campaign.bosses.some(boss=>boss.level===level)&&(rival===playerId||innerFight);
+  const lines=stageRivalLines[season]?.[level]?.[rival];
+  if(!bossReplay) return {lines};
+  return innerFight?{premise:'Roj confronts the Cult’s hold within his own mind.',innerFight}:
+    {premise:'Genesis replays this boss battle with your fighter in the hero’s place.',bossReplay};
+}
+
 function showStoryPage(chapter) {
-  const index=campaign.player, fighter=roster[index];
-  const story=fighterStories[fighter.id][chapter], ending=chapter==='ending';
-  $('storyChapter').textContent=fighterDisplayName(fighter)+(ending?' · Epilogue':' · Prologue');
-  $('storyTitle').textContent=story.title;
-  const copy=$('storyCopy');
-  copy.replaceChildren(...story.paragraphs.map(text=>{
-    const paragraph=document.createElement('p');
-    paragraph.textContent=text;
-    return paragraph;
-  }));
-  const context=document.createElement('p');
-  context.className='hint';
-  context.textContent=campaign.season===2?
-    (ending?'Enigma has fallen, and the breach is closing.':'Enigma is opening a breach through the Gate of Hades.'):
-    (ending?'Tyrone has fallen, and the Gate of Hades is sealed.':'Beyond Semmenelin’s mountain, Tyrone is gathering power at the Gate of Hades.');
-  if(fighter.id==='tyrone'&&campaign.season===1){
-    context.textContent=ending?'Tyrone has defeated the shadow that stole his form.':'A second Tyrone is waiting at the Gate of Hades.';
-  }
-  if(fighter.id==='enigma'&&campaign.season===2){
-    context.textContent=ending?'Enigma’s reflection recedes into the breach.':'An echo of Enigma is drawing power through the Gate of Hades.';
-  }
-  if(fighter.season!==campaign.season){
-    copy.replaceChildren(context);
-    $('storyTitle').textContent=ending?'The Final Battle':'The Road Ahead';
-  } else if(ending) copy.prepend(context);
-  else copy.append(context);
-  const portrait=$('storyPortrait'), pen=portrait.getContext('2d'), sprite=sprites[index];
+  if(campaign.season===3){showIfritStoryPage(chapter);return;}
+  $('storyPage').dataset.season=campaign.season;
+  const {season,player,level,route}=campaign, fighter=roster[player];
+  const {opening,ending}=seasonStories[season];
+  const personal=fighterStory(fighter,season,seasonThreeFighters);
+  const finale=chapter==='ending', stage=chapter==='stage';
+  const zig=season===4?zigStages[level]:null;
+  const stageTitle=zig?.title??campaignScenes[season][level][1];
+  const epilogue=finale?fighterEpilogue(fighter,season,ending):null;
+  const passages=stage?[zig?.passage??campaignStageNotes[season][level],storyMatchContext().premise].filter(Boolean):
+    finale?epilogue.paragraphs:zig?[personal.stake,...opening]:[personal.stake,opening[1]];
+  $('storyTitle').textContent=stage?stageTitle:epilogue?.title??personal.title;
+  $('storyChapter').textContent=stage?'Season '+season+' · Stage '+(level+1)+' of '+storyLength:
+    'Season '+season+' · '+fighterDisplayName(fighter)+(finale?' · Epilogue':' · Prologue');
+  showParagraphs('storyCopy',passages);
+  drawStoryPortrait(stage?route[level]:player,'storyPortrait',stage?storyRivalCostume(route[level]):matchCostumes[0]);
+  const button=$('storyContinue');
+  button.textContent=stage?'Start Stage '+(level+1):finale?'Finish Story':'Continue to Level 1';
+  button.onclick=stage?freshMatch:finale?()=>show('menu'):()=>showStoryPage('stage');
+  $('storyBack').hidden=finale||stage;
+  $('storyBack').onclick=()=>show('menu');
+  show('storyPage');
+  if(stage) scheduleStoryStage(passages);
+}
+function scheduleStoryStage(passages){
+  const words=passages.join(' ').trim().split(/\s+/).length;
+  storyAdvanceAt=performance.now()+Math.max(8500,Math.min(29500,words*290));
+}
+function drawStoryPortrait(index,canvasId='storyPortrait',costume=null) {
+  const id=Number.isInteger(index)?roster[index].id:index;
+  const outfitIndex=index==='tyrone'?roster.findIndex(entry=>entry.id===id):index;
+  const portrait=$(canvasId), pen=portrait.getContext('2d');
+  const paint=()=>{
+    const sprite=index==='semmenelin'?dragonSprite:
+      costume===null?sprites[outfitIndex]:selectRosterCostume(outfitIndex,costume);
+    if(!sprite) return;
+    const height=Math.min(portrait.height,portrait.width*sprite.h/sprite.w)*portraitScale(id);
+    paintSprite(pen,sprite,portrait.width/2,portrait.height,height);
+  };
+  const key=String(index)+'/'+costume;
+  portrait.dataset.portrait=key;
   pen.clearRect(0,0,portrait.width,portrait.height);
-  const height=Math.min(portrait.height,portrait.width*sprite.h/sprite.w);
-  paintSprite(pen,sprite,portrait.width/2,portrait.height,height);
-  const continueButton=$('storyContinue');
-  continueButton.textContent=ending?'Finish Story':'Continue to Level 1';
-  continueButton.onclick=ending?()=>show('menu'):freshMatch;
+  const pending=costume!==null&&ensureOutfitArt(id,costume);
+  if(pending) pending.then(()=>{if(portrait.dataset.portrait===key) paint();}).catch(()=>{});
+  else paint();
+}
+
+function showIfritStoryPage(chapter) {
+  $('storyPage').dataset.season='3';
+  const {player,level,route}=campaign;
+  const fighter=roster[player];
+  const opening=chapter==='opening', ending=chapter==='ending';
+  const story=opening?ifritStoryOpening:ending?fighterEpilogue(fighter,3,ifritStoryEnding):ifritStoryStages[level];
+  const personal=opening?fighterStory(fighter,3,seasonThreeFighters):null;
+  $('storyChapter').textContent=opening?'Season 3 · Ifrit · '+fighterDisplayName(fighter)+' · Prologue':
+    ending?'Season 3 · Ifrit · Epilogue':'Season 3 · Ifrit · Stage '+(level+1)+' of '+storyLength;
+  $('storyTitle').textContent=personal?.title??story.title;
+  const passages=opening?[personal.stake,...story.paragraphs]:
+    ending?story.paragraphs:[...story.paragraphs,storyMatchContext().premise].filter(Boolean);
+  showParagraphs('storyCopy',passages);
+  drawStoryPortrait(opening||ending?player:route[level],'storyPortrait',opening||ending?matchCostumes[0]:storyRivalCostume(route[level]));
+  const button=$('storyContinue');
+  button.textContent=opening?'Enter Ifrit':ending?'Finish Story':'Start Stage '+(level+1);
+  button.onclick=opening?()=>showIfritStoryPage('stage'):ending?()=>show('menu'):freshMatch;
   $('storyBack').hidden=ending;
   $('storyBack').onclick=()=>show('menu');
   show('storyPage');
+  if(chapter==='stage') scheduleStoryStage(passages);
+}
+
+function storyRivalCostume(index) {
+  const id=typeof index==='number'?roster[index].id:index;
+  const blocked=new Set(roster[campaign.player].id===id?[matchCostumes[0]]:[]);
+  campaign.rivalCostumes??=[];
+  const {season,level}=campaign;
+  const cultLeader=roster[index]?.faction==='The Couple';
+  const preset=season===4?(zigStages[level].persona?.costume??(level===3&&cultLeader?2:undefined)):
+    season===3&&cultLeader?(level===3?2:0):undefined;
+  return campaign.rivalCostumes[campaign.level]??=(preset==null?randomCostume(id,blocked):differentCostume(id,preset,blocked));
 }
 function freshMatch() {
   const base=$('ai').selectedIndex;
   const storyLevel=campaign?.level??null;
   const story=storyLevel!==null;
   const mode=$('mode').value;
-  const cpuSeats=[!story&&mode==='spectate',story||mode==='cpu'||mode==='spectate'];
+  const cpuSeats=cpuSeatsForMode(story,mode);
   const difficulty=story?Math.min(2,base+Math.floor(storyLevel/4)):base;
   const tag=gameMode==='tag';
   const indices=story?[campaign.player,campaign.route[storyLevel]]:matchPicks.slice(0,2);
   const stage=story?campaign.arenas[storyLevel]:null;
-  const rounds=indices[1]==='tyrone'?2:prefs.rounds;
+  const rounds=indices[1]==='tyrone'||(story&&campaign.season===4&&storyLevel===storyLength-1)?2:prefs.rounds;
   const lineups=indices.map((index,seat)=>tag?[index,matchPicks[seat+2]]:[index]);
-  match={round:1,total:rounds,score:[0,0],cpuSeats,difficulty,storyLevel,lineups,stage,tag};
-  beginRound();
+  if(pendingBattle) return;
+  if(!story) matchCostumes=resolveMatchCostumes(matchPicks,cpuSeats);
+  const wardrobe=story?[[matchCostumes[0]],[storyRivalCostume(indices[1])]]:
+    indices.map((_,seat)=>tag?[matchCostumes[seat],matchCostumes[seat+2]]:[matchCostumes[seat]]);
+  const next={round:1,total:rounds,score:[0,0],cpuSeats,difficulty,storyLevel,lineups,wardrobe,stage,tag};
+  const pending=lineups.flatMap((lineup,seat)=>lineup.map((index,slot)=>
+    ensureOutfitArt(roster[index]?.id??index,wardrobe[seat][slot]))).filter(Boolean);
+  if(!pending.length){match=next;beginRound();return;}
+  pendingBattle=next;
+  const button=$(screen==='storyPage'?'storyContinue':screen==='battle'?'advance':'fight');
+  const label=button.textContent;
+  button.disabled=true;
+  button.textContent='Loading costumes…';
+  Promise.all(pending).then(()=>{
+    if(pendingBattle!==next) return;
+    pendingBattle=null;
+    match=next;
+    beginRound();
+  }).catch(()=>{
+    if(pendingBattle!==next) return;
+    pendingBattle=null;
+    button.textContent='Retry loading costumes';
+  }).finally(()=>{
+    button.disabled=false;
+    if(button.textContent==='Loading costumes…') button.textContent=label;
+  });
 }
 function beginRound() {
   if(match.storyLevel===null){
@@ -924,29 +1585,32 @@ function beginRound() {
   }
   lastStage=match.stage;
   const {lineups,storyLevel}=match;
-  match.teams=lineups.map((lineup,i)=>lineup.map(index=>createFighter(index,i)));
+  match.teams=lineups.map((lineup,i)=>lineup.map((index,slot)=>createFighter(index,i,match.wardrobe?.[i]?.[slot])));
   match.lastTag=[-Infinity,-Infinity];
   fighters=match.teams.map(team=>team[0]);
   refreshMatchFighters();
-  shots=[]; sparks=[]; superEffects=[]; shake=0; roundOver=0; accumulator=0; roundClock=99*60;
+  shots=[]; sparks=[]; superEffects=[]; shake=0; hitStop=0; screenFlash=0; fightBannerAt=-Infinity; roundOver=0; accumulator=0; roundClock=99*60;
   $('result').hidden=true;
   $('touch').hidden=match.cpuSeats[0];
   $('storyProgress').hidden=storyLevel===null;
   if(storyLevel!==null){
     const final=storyLevel===storyLength-1;
+    const midBoss=storyLevel===4;
     $('storyProgress').textContent='Season '+campaign.season+' · Level '+(storyLevel+1)+' / '+storyLength+
-      ' · '+(final?'Final Boss · ':'')+fighterDisplayName(fighters[1]);
+      ' · '+(final?'Final Boss · ':midBoss?'Mid-Boss · ':'')+fighterDisplayName(fighters[1]);
   }
   show('battle');
   document.activeElement?.blur();
   makeHud(); updateHud();
-  const opening=()=>startDialogue(['intro','intro'],()=>{
+  const opening=()=>startDialogue(['intro','intro'],()=>startCountdown(()=>{
     clearGameInput();
     accumulator=0;
-  });
+  }));
   if(match.round===1) showMatchup(opening);
-  else if(match.round===2&&(fighters[1].demon||fighters[1].ascended||fighters[1].giant)){
-    startBossTransformation(fighters[1],opening);
+  else if(match.round===2){
+    const transformations=fighters.filter(fighter=>fighter.demon||fighter.ascended||fighter.giant||fighter.awakened);
+    const intro=transformations.reduceRight((next,fighter)=>()=>startBossTransformation(fighter,next),opening);
+    intro();
   }
   else opening();
 }
@@ -955,30 +1619,38 @@ function startBossTransformation(boss,onDone){
   const quote=$('bossSceneLine');
   const lines=finalBossLines[boss.id];
   $('bossSceneName').textContent=fighterDisplayName(boss);
-  quote.textContent='“'+(lines[fighters[0]?.id]??lines.default)+'”';
+  const opponent=fighters[1-(boss.seat??1)];
+  quote.textContent='“'+(lines[opponent?.id]??lines.default)+'”';
   quote.setAttribute('aria-hidden',!reducedMotion.matches);
   scene.hidden=false;
   interlude={
     duration:reducedMotion.matches?1850:3300,elapsed:0,boss,revealed:reducedMotion.matches,
     onDone:()=>{scene.hidden=true;onDone()}
   };
-  sfx('super');
+  sfx(boss.giant?'charge':boss.awakened?'awaken':'super');
 }
-function createFighter(index,seat){
-  const demon=index==='tyrone'&&match.round>=2;
-  const entry=index==='semmenelin'?dragonBoss:index==='tyrone'?(demon?tyroneDemon:tyroneBoss):roster[index];
-  const campaignBoss=seat===1&&match?.storyLevel!=null?campaign?.bosses.find(boss=>boss.level===match.storyLevel):null;
-  const maxHp=campaignBoss?.hp??entry.maxHp??100;
+function createFighter(index,seat,costume=0){
+  const bossTyrone=index==='tyrone';
+  const arcadeTyrone=gameMode==='arcade'&&roster[index]?.id==='tyrone';
+  const demon=(bossTyrone||arcadeTyrone)&&match?.round>=2;
+  const entry=index==='semmenelin'?dragonBoss:bossTyrone?(demon?tyroneDemon:tyroneBoss):roster[index];
+  const campaignBoss=seat===1&&match?.storyLevel!=null?campaign?.bosses.find(boss=>boss.level===match.storyLevel&&boss.id===entry.id):null;
   const ascended=campaignBoss?.id==='enigma'&&entry.id==='enigma'&&match.round>=2;
-  const giant=campaignBoss?.id==='gensys'&&entry.id==='gensys'&&match.round>=2;
-  const formStats=giant?{speed:2.55,power:1.28,reach:164}:{};
-  return {...entry,...formStats,index,seat,demon,ascended,giant,x:seat?693:267,y:floor,face:seat?-1:1,vx:0,vy:0,dashTicks:0,dashDirection:0,
-    maxHp,hp:maxHp,skill:0,stun:0,guard:false,blockUntil:0,move:null,cpuGuard:0,element:0,beastUntil:0,jumpStartedAt:null,combo:null};
+  const giant=entry.id===campaignBoss?.id&&['gensys','vankov'].includes(entry.id)&&match.round>=2;
+  const zigStage=seat===1&&campaign?.season===4&&match?.storyLevel!=null?zigStages[match.storyLevel]:null;
+  const persona=zigStage?.opponent===entry.id?zigStage.persona:null;
+  const awakened=campaignBoss?.id==='azazel'&&entry.id==='azazel'&&match.round>=2;
+  const maxHp=(campaignBoss?.hp??entry.maxHp??100)+(awakened?8:giant&&entry.id==='vankov'?8:0);
+  const formStats=giant?(entry.id==='vankov'?{speed:2.4,power:1.23,reach:162}:{speed:2.55,power:1.28,reach:164}):
+    awakened?{speed:3.05,power:1.29,reach:163}:{};
+  return {...entry,...formStats,name:persona?.name??entry.name,accent:persona?.accent??entry.accent,
+    index,seat,costume,demon,ascended,giant,awakened,storyName:persona?.name,storyAccent:persona?.accent,x:seat?693:267,y:floor,face:seat?-1:1,vx:0,vy:0,dashTicks:0,dashDirection:0,
+    maxHp,hp:maxHp,skill:godMode&&seat===0?maxSkill:0,stun:0,guard:false,blockUntil:0,move:null,walkDistance:0,cpuGuard:0,element:0,beastUntil:0,jumpStartedAt:null,combo:null};
 }
 function refreshMatchFighters(){
   const [first,second]=fighters;
-  second.alternate=first.id===second.id;
-  second.accent=second.alternate?mirrorAccent:(roster[second.index]?.accent||second.accent);
+  second.alternate=first.id===second.id&&(first.costume===second.costume||first.demon&&second.demon);
+  second.accent=second.alternate?mirrorAccent:(second.storyAccent??roster[second.index]?.accent??second.accent);
   const pad=$('touchAction');
   pad.querySelector('[data-action="throw"]').disabled=!projectilesByFighter[first.id];
   pad.querySelector('[data-action="tag"]').hidden=!match.tag;
@@ -994,7 +1666,7 @@ $('fight').onclick=startGame;
 function showMatchup(onDone){
   fighters.forEach((fighter,seat)=>{
     const {sprite}=fighterArtwork(fighter), card=$('portrait'+seat), pen=card.getContext('2d');
-    const height=Math.min(296,316*sprite.h/sprite.w);
+    const height=Math.min(296,316*sprite.h/sprite.w)*portraitScale(fighter.id);
     pen.clearRect(0,0,card.width,card.height);
     pen.save();pen.translate(card.width/2,card.height);
     pen.scale(seat?-1:1,1);
@@ -1011,14 +1683,36 @@ function showMatchup(onDone){
 const lastDialogue=new Map();
 const speechDuration=1750;
 function startDialogue(roles,onDone) {
+  const season=campaign?.season;
+  const context=season?storyMatchContext():null;
   const entries=fighters.map((fighter,seat)=>{
     const role=roles[seat], opponent=fighters[1-seat];
     const lines=role==='draw'?drawDialogue:fighterDialogue[fighter.id][role];
-    const special=relationLine(fighter,opponent,role);
-    const key=[fighter.id,opponent.id,role].join(':');
+    const isScene=role==='intro'?match.round===1:match.round===match.total;
+    const encounter=season&&role!=='draw'&&!fighter.storyName&&!opponent.storyName?
+      storyEncounterLine(season,fighter,opponent,role):null;
+    const zig=season===4&&seat===1&&role!=='draw'?zigStages[match.storyLevel]:null;
+    let scene=null;
+    if(season&&isScene){
+      scene=context?.bossReplay?null:season===3?
+        ifritCampaignLine(match.storyLevel,seat,role,match.round,true,fighters[1].id,fighter.id):
+        season===4?zig?.lines[role==='intro'?0:role==='loss'?1:2]:campaignSceneLine(campaignScenes[season][match.storyLevel],seat,role);
+    }
+    if(isScene&&role!=='draw'&&context?.lines&&seat===1){
+      scene=context.lines[role==='intro'?0:role==='loss'?1:2]??null;
+    }
+    if(isScene&&context?.innerFight&&role!=='draw') scene=role==='intro'?
+      ['These are my memories. Thazar has no claim on them.','Then take them back and live with what they show you.'][seat]:
+      ['The memories belong to me again.','I can still hear the voice behind the mask.'][seat];
+    const challengerPair=role!=='draw'&&[fighter,opponent].some(member=>newChallengers.some(entry=>entry.id===member.id));
+    const related=challengerPair&&(storyEncounterLine(1,fighter,opponent,role)??storyEncounterLine(3,fighter,opponent,role));
+    const special=(isScene&&(!context?.lines||seat===0)?encounter:null)??scene??(related||null)??
+      ifritRelationLine(fighter,opponent,role)??relationLine(fighter,opponent,role);
+    const key=[season??0,match.storyLevel??'arcade',fighter.id,opponent.id,role].join(':');
     const prior=lastDialogue.get(key);
-    const choices=lines.filter(line=>line!==prior);
-    const line=special&&(role==='intro'||prior!==special)?special:choices[Math.floor(Math.random()*choices.length)];
+    const options=season&&role!=='draw'?[...lines,storyVoices[fighter.id][role]]:lines;
+    const choices=options.filter(line=>line!==prior);
+    const line=special&&(isScene||prior!==special)?special:choices[Math.floor(Math.random()*choices.length)];
     lastDialogue.set(key,line);
     const side=fighters[0].id===fighters[1].id?' · P'+(seat+1):'';
     return {fighter,name:fighter.name+side,line};
@@ -1038,10 +1732,10 @@ function positionSpeech() {
   const arenaWidth=canvas.clientWidth, arenaHeight=canvas.clientHeight;
   const {sprite,height}=fighterArtwork(fighter);
   const pose=fighter.knockout?downPose(fighter,sprite,height,floor):fighter;
-  const anchorX=arenaWidth*pose.x/canvas.width;
+  const anchorX=arenaWidth*pose.x/battleWidth;
   const finish=roundArtwork(fighter,fighter.roundPose?.role,height,fighter.roundPose?.form);
   const headHeight=pose.height??finish?.height??height;
-  const anchorY=arenaHeight*(pose.y-headHeight)/canvas.height;
+  const anchorY=arenaHeight*(pose.y-headHeight)/battleHeight;
   const left=Math.max(6,Math.min(arenaWidth-bubble.offsetWidth-6,anchorX-bubble.offsetWidth/2));
   bubble.style.left=left+'px';
   bubble.style.top=Math.max(4,anchorY-bubble.offsetHeight-9)+'px';
@@ -1065,7 +1759,7 @@ function renderControls() {
   const guide=$('helpControls');
   const fighter=roster.find(entry=>entry.id===$('helpFighter').value);
   guide.replaceChildren();
-  if(fighter?.season===2){
+  if(fighter&&(fighter.season>=2||fighter.id==='lour')){
     const overview=document.createElement('p');
     overview.className='hint';
     overview.textContent=fighter.desc;
@@ -1078,9 +1772,9 @@ function renderControls() {
     const groups=document.createElement('div');
     groups.className='control-groups';
     const makeRows=names=>names.map(action=>[actions[action],keyLabel(keys[action])]);
-    const gear=equipment[fighter?.id];
+    const equipmentName=equipmentNames[fighter?.id];
     const punchNames=fighter?.id==='ranelle'?['Knife Slash','Grenade','Missile']:
-      ['Low','Medium','High'].map(level=>level+' '+(gear?.label||'Punch'));
+      ['Low','Medium','High'].map(level=>level+' '+(equipmentName||'Punch'));
     if(lowMeleeNames[fighter?.id]) punchNames[0]=lowMeleeNames[fighter.id];
     const projectile=projectilesByFighter[fighter?.id];
     const superName=fighter?superMoveName(fighter):'Super';
@@ -1093,7 +1787,7 @@ function renderControls() {
     else if(!fighter) specials.unshift(['Projectile (select fighters)',keyLabel(keys.throw)]);
     for(const [title,rows] of [
       ['Movement & Guard',[...makeRows(['left','right','jump','guard']),['High Jump',keyLabel(keys.jump)+' twice']]],
-      [gear?'Weapon Attacks':'Punches',['lp','mp','hp'].map((action,i)=>[punchNames[i],keyLabel(keys[action])])],
+      [equipmentName?'Weapon Attacks':'Punches',['lp','mp','hp'].map((action,i)=>[punchNames[i],keyLabel(keys[action])])],
       [fighter?.id==='ranelle'?'Knife Attacks':'Kicks',fighter?.id==='ranelle'?
         ['lk','mk','hk'].map((action,i)=>[['Low','Medium','High'][i]+' Knife Slash',keyLabel(keys[action])]):
         makeRows(['lk','mk','hk'])],['Specials',specials]
@@ -1111,6 +1805,7 @@ function renderControls() {
       } else if(title==='Specials'){
         const note=document.createElement('small'); note.className='hint';
         note.textContent=fighter?.id==='bennedic'?'100 Skill · 5 seconds of double damage':'Super requires 100 Skill';
+        if(fighter?.id==='lour') note.textContent='Super requires 100 Skill · Restorative Light restores up to 24 HP.';
         card.append(note);
       }
     }
@@ -1220,7 +1915,8 @@ function cpuInput(f,enemy) {
     hk:!approach&&roll>.975-level*.006,
     throw:distance>150&&distance<620&&roll<.014+level*.006,
     super:distance<(fighterSuper(f,1)?.range||380)&&f.skill===maxSkill&&roll<.035,
-    super2:distance<(fighterSuper(f,2)?.range||380)&&f.skill===maxSkill&&roll>=.035&&roll<.065,
+    super2:f.skill===maxSkill&&roll>=.035&&roll<.065&&
+      (f.id==='lour'?f.maxHp-f.hp>=14:distance<(fighterSuper(f,2)?.range||380)),
     teamSuper:!!reserve&&f.skill===maxSkill&&distance<305&&roll<.03,
     jump:distance>170&&roll>.997
   };
@@ -1230,6 +1926,7 @@ const teamSuper={name:'Tag Team Super',wind:17,range:265,targeted:true,effect:'t
   beats:[{at:17,damage:26},{at:31,damage:28}],recovery:23};
 function fighterSuper(fighter,slot=1) {
   if(slot===3) return teamSuper;
+  if(fighter.id==='vankov'&&fighter.giant) return vankovMegaSkills[slot-1];
   if(slot===2) return secondSupers[fighter.id];
   if(fighter.id==='tyrone'&&fighter.index!=='tyrone') return tyroneMorph;
   return signatureSupers[fighter.id];
@@ -1256,24 +1953,24 @@ function startMove(f,type,slot=1,partner=null) {
       Object.assign(f.move,{signature,wind:signature.wind,live:lastBeat-signature.wind+5,rest:signature.recovery??18});
     }
     if(signature?.morph||(f.id==='bennedic'&&slot===1)) Object.assign(f.move,{morph:true,live:1,rest:10});
-    f.skill=0;
+    if(!hasGodMode(f)) f.skill=0;
     f.superCall={text:superMoveName(f,slot)+'!',until:tick+66};
     const look=superLook(f,slot);
     superEffects.push({kind:'cast',fighter:f,slot,style:look.style,color:look.color,when:tick,duration:Math.max(22,f.move.wind+5)});
   }
-  f.move.animation=attackAnimation(f,f.move,equipmentFor(f,f.move));
+  f.move.animation=attackAnimation(f,f.move,gunnerEquipmentFor(f,f.move));
   if(f.move.animation==='cast'&&f.move.type!=='super'){
     f.move.castColor=f.alternate?mirrorAccent:(f.move.shot?.colors?.[f.element%f.move.shot.colors.length]??f.move.shot?.color??f.accent);
   }
-  sfx(type==='super'?'super':f.move.shot?'throw':f.move.damage>=10?'heavy':'light');
+  startAttackSound(f,f.move);
 }
 function awardSkill(f,amount) { f.skill=Math.min(maxSkill,f.skill+amount); }
-function blocksFrom(defender,sourceX) {
-  return defender.guard&&(sourceX-defender.x)*defender.face>=0;
+function blocksFrom(defender,sourceX,attacker) {
+  return !hasGodMode(attacker)&&defender.guard&&(sourceX-defender.x)*defender.face>=0;
 }
 function damage(attacker,defender,amount,sourceX,type,{projectile=false}={}) {
   if(defender.hp<=0) return;
-  const blocked=blocksFrom(defender,sourceX);
+  const blocked=blocksFrom(defender,sourceX,attacker);
   if(blocked){
     attacker.combo=null;
     defender.blockUntil=tick+9;
@@ -1288,11 +1985,12 @@ function damage(attacker,defender,amount,sourceX,type,{projectile=false}={}) {
     superEffects.push({kind:blocked?'block':'impact',fighter:defender,color:blocked?'#83d9ff':attacker.accent,when:tick,duration:25});
     if(blocked){
       awardSkill(defender,projectile?6:10);
-      sfx('guard');
+      sfx('ward');
       return;
     }
   }
-  defender.hp=Math.max(0,defender.hp-(blocked?Math.max(1,amount*.15):amount));
+  const dealt=amount*(hasGodMode(attacker)?2:1);
+  if(!hasGodMode(defender)) defender.hp=Math.max(0,defender.hp-(blocked?Math.max(1,dealt*.15):dealt));
   defender.stun=blocked?5:type==='super'?22:11;
   defender.dashTicks=0;
   defender.vx=Math.sign(defender.x-sourceX)*(blocked?2:7);
@@ -1303,19 +2001,28 @@ function damage(attacker,defender,amount,sourceX,type,{projectile=false}={}) {
   }
   if(type!=='super') awardSkill(attacker,projectile?(blocked?3:8):(blocked?5:12));
   awardSkill(defender,projectile?(blocked?6:5):(blocked?10:8));
-  burst(defender.x,defender.y-76,blocked?'#83d9ff':attacker.accent);
-  sfx(blocked?'guard':'hit');
-  shake=blocked?2:type==='super'?13:6;
+  const push=Math.sign(defender.x-sourceX)||-defender.face;
+  spawnImpact(defender.x-push*14,defender.y-76,blocked?'#83d9ff':attacker.accent,
+    {dir:push,power:Math.min(1,amount/18),blocked,special:type==='super'});
+  if(!blocked&&defender.y>=floor) spawnDust(defender.x,floor,push,type==='super'?9:4);
+  if(type==='super'&&!blocked) screenFlash=6;
+  sfx(hitSound(attacker,defender,type,{blocked,projectile,amount}));
+  shake=blocked?2.5:type==='super'?14:amount>=10?8:5;
 }
 function applyProjectileHit(shot,enemy,fromX) {
   const amount=shot.damage*(shot.special?1:shot.owner.power*projectileDamageScale);
   damage(shot.owner,enemy,amount,fromX,shot.special?'super':'throw',{projectile:true});
 }
 function burst(x,y,color) {
-  for(let i=0;i<12;i++) sparks.push({x,y,color,vx:(Math.random()-.5)*12,vy:(Math.random()-.75)*9,life:17});
+  const stop=hitStop;
+  spawnImpact(x,y,color,{dir:Math.random()<.5?-1:1,power:.4});
+  hitStop=stop;
 }
 function moveFighter(f,input,enemy) {
+  const oldX=f.x;
+  const wasGrounded=f.y===floor;
   if(f.frozenUntil>tick) {
+    f.walkDistance=0;
     f.guard=false;
     f.dashTicks=0;
     f.vx=0;
@@ -1333,6 +2040,7 @@ function moveFighter(f,input,enemy) {
   }
   f.guard=!!input.guard&&!f.move&&(f.stun===0||f.guard)&&f.y>=floor;
   const walk=(input.right?1:0)-(input.left?1:0);
+  let dashing=false;
   if(!f.stun&&!f.move&&!f.guard) {
     f.vx=walk*f.speed;
     if(input.highJump&&f.jumpStartedAt!==null&&tick-f.jumpStartedAt<=jumpBoostTicks&&f.vy<0){
@@ -1359,6 +2067,7 @@ function moveFighter(f,input,enemy) {
       sfx('dash');
     }
     if(f.dashTicks>0){
+      dashing=true;
       f.vx=f.dashDirection*f.speed*(1.75+1.2*f.dashTicks/dashDuration);
       f.dashTicks--;
     }
@@ -1377,9 +2086,16 @@ function moveFighter(f,input,enemy) {
   if(move?.type==='super'&&move.slot===1&&f.id==='roj'&&move.t===15&&f.y>=floor) f.vy=-9;
   f.x=Math.max(42,Math.min(918,f.x+f.vx));
   if(f.x===42||f.x===918) f.dashTicks=0;
+  const falling=f.y<floor&&f.vy;
   f.vy+=gravity;
   f.y=Math.min(floor,f.y+f.vy);
-  if(f.y===floor){f.vy=0;f.jumpStartedAt=null;}
+  if(f.y===floor){
+    if(falling>4) spawnDust(f.x,floor,0,5);
+    f.vy=0;f.jumpStartedAt=null;
+  }
+  const distance=Math.abs(f.x-oldX);
+  const walking=walk&&distance&&wasGrounded&&f.y===floor&&!f.move&&!f.guard&&!f.stun&&!dashing;
+  f.walkDistance=walking?(f.walkDistance+distance)%walkCycle:0;
 }
 function advanceMove(f,enemy) {
   if(!f.move) return;
@@ -1401,6 +2117,7 @@ function advanceMove(f,enemy) {
     const color=f.alternate?mirrorAccent:signatureColor;
     const origin=weaponShotOrigin(f);
     if(spellProjectiles.has(style.shape)||origin.artX!=null) emitSpellRelease(f,origin,style.shape,color,false);
+    sfx(style.shape==='element'?['fire','ice','shock'][(f.element+2)%3]:projectileSound[style.shape]??'throw');
     shots.push({...style,color,damage:move.damage,owner:f,...origin,vx:f.face*style.speed,life:85,age:0});
   }
   const ahead=(enemy.x-f.x)*f.face;
@@ -1417,18 +2134,26 @@ function resolveSignatureBeat(f,enemy,move) {
   if(!beat||enemy.hp<=0) return;
   const look=superLook(f,move.slot,beat.color);
   const color=look.color;
+  if(beat.heal){
+    f.hp=Math.min(f.maxHp,f.hp+beat.heal);
+    emitSignature(f,f,look,36);
+    burst(f.x,f.y-85,color);
+    sfx('heal');
+    return;
+  }
   const ahead=(enemy.x-f.x)*f.face;
   const inReach=ahead>=0&&ahead<=move.signature.range&&Math.abs(f.y-enemy.y)<(f.id==='roj'?130:92);
   if(beat.shot){
     const origin=weaponShotOrigin(f);
     emitSpellRelease(f,origin,beat.shot,color,true);
+    sfx(projectileSound[beat.shot]??'throw');
     shots.push({shape:beat.shot,color,style:look.style,special:true,owner:f,damage:beat.damage,
       ...origin,vx:f.face*beat.speed,life:90,age:0});
     return;
   }
   if(beat.freeze){
     if(!inReach) return;
-    if(blocksFrom(enemy,f.x)){
+    if(blocksFrom(enemy,f.x,f)){
       damage(f,enemy,0,f.x,'super');
       return;
     }
@@ -1469,13 +2194,15 @@ function finishRound() {
   }};
 }
 function fighterDisplayName(fighter){
-  return fighter.name[0]+fighter.name.slice(1).toLowerCase();
+  if(fighter.storyName) return fighter.storyName;
+  return fighter.name.length<=2?fighter.name:fighter.name.toLowerCase().replace(/\b[a-z]/g,letter=>letter.toUpperCase());
 }
 function announceRound(winner) {
   const banner=$('roundAnnouncement');
   banner.textContent=winner<0?'Round Draw':fighterDisplayName(fighters[winner])+' Wins!';
   banner.hidden=false;
-  interlude={duration:1300,elapsed:0,onDone:()=>{
+  announce(winner<0?'Draw!':fighterDisplayName(fighters[winner])+' wins!',{rate:.9,pitch:.6});
+  interlude={duration:1900,elapsed:0,onDone:()=>{
     banner.hidden=true;
     if(match.round<match.total){ match.round++; beginRound(); }
     else finishMatch();
@@ -1484,6 +2211,7 @@ function announceRound(winner) {
 function advanceInterlude(elapsed) {
   interlude.elapsed+=elapsed;
   const progress=Math.min(1,interlude.elapsed/interlude.duration);
+  interlude.onTick?.(interlude.elapsed);
   if(interlude.pose){
     fighters.forEach(fighter=>{
       fighter.roundPose.progress=progress;
@@ -1495,7 +2223,7 @@ function advanceInterlude(elapsed) {
   if(interlude.boss&&!interlude.revealed&&progress>=.46){
     interlude.revealed=true;
     $('bossSceneLine').setAttribute('aria-hidden',false);
-    sfx('heavy');
+    sfx(interlude.boss.giant?'mechanical':interlude.boss.awakened?'awaken':'collapse');
   }
   if(progress===1){
     const {onDone}=interlude;
@@ -1508,7 +2236,7 @@ function finishMatch() {
   const {storyLevel}=match;
   if(storyLevel!==null&&p1>p2&&storyLevel<storyLength-1){
     campaign.level=storyLevel+1;
-    freshMatch();
+    showStoryPage('stage');
     return;
   }
   if(storyLevel===storyLength-1&&p1>p2){
@@ -1529,9 +2257,9 @@ function finishMatch() {
 function startKnockout(f,opponent) {
   const direction=Math.sign(f.vx)||Math.sign(f.x-opponent.x)||-f.face;
   const {sprite,height}=fighterArtwork(f);
-  const room=direction>0?canvas.width-f.x:f.x;
+  const room=direction>0?battleWidth-f.x:f.x;
   const fallDirection=room<height? -direction:direction;
-  const end=Math.max(8,Math.min(canvas.width-8,f.x+direction*300));
+  const end=Math.max(8,Math.min(battleWidth-8,f.x+direction*300));
   f.knockout={x:f.x,y:f.y,end,fallDirection,progress:0,form:battleForm(f),sprite,height};
   f.move=null;
   f.guard=false;
@@ -1544,6 +2272,7 @@ function advanceKnockouts() {
     const airborne=Math.min(1,progress/.72);
     const lift=Math.sin(Math.PI*airborne)*76;
     ko.progress=progress;
+    if(progress>=.72&&!ko.dusted){ko.dusted=true;spawnDust(f.x,floor,Math.sign(ko.end-ko.x),14);shake=Math.max(shake,7);}
     f.x=ko.x+(ko.end-ko.x)*slide;
     f.y=ko.y+(floor-ko.y)*airborne-lift;
   }
@@ -1559,7 +2288,7 @@ function switchFighter(seat,forced=false){
   const opponent=fighters[1-seat];
   const x=forced?Math.max(75,Math.min(885,opponent.x+(outgoing.x<opponent.x?-1:1)*220)):outgoing.x;
   Object.assign(partner,{x,y:floor,face:x<=opponent.x?1:-1,vx:0,vy:0,move:null,guard:false,
-    stun:0,frozenUntil:0,dashTicks:0,dashDirection:0,cpuGuard:0,superCall:null,jumpStartedAt:null,hitAt:null,blockUntil:0,combo:null});
+    stun:0,frozenUntil:0,dashTicks:0,dashDirection:0,cpuGuard:0,walkDistance:0,superCall:null,jumpStartedAt:null,hitAt:null,blockUntil:0,combo:null});
   outgoing.combo=null;
   opponent.combo=null;
   jumpTaps[seat]=null;
@@ -1573,6 +2302,7 @@ function switchFighter(seat,forced=false){
 }
 function update() {
   tick++;
+  updateParticles();
   superEffects=superEffects.filter(effect=>tick-effect.when<effect.duration);
   if(roundOver){
     roundOver--;
@@ -1612,7 +2342,7 @@ function update() {
     shot.x+=shot.vx;shot.age++;
     if(shot.gravity){shot.vy+=shot.gravity;shot.y+=shot.vy;}
     const enemy=fighters[1-shot.owner.seat];
-    const phased=!shot.special&&enemy.id==='ivanov'&&enemy.dashTicks>0;
+    const phased=!shot.special&&phaseDashFighters.has(enemy.id)&&enemy.dashTicks>0;
     const contact=!phased&&enemy.x>Math.min(fromX,shot.x)-29&&enemy.x<Math.max(fromX,shot.x)+29&&
       shot.y<enemy.y-18&&shot.y>enemy.y-153;
     if(shot.returnAt){
@@ -1623,10 +2353,13 @@ function update() {
       return shot.age<shot.returnAt*2;
     }
     if(contact||shot.y>=floor){
-      if(shot.blast) burst(shot.x,Math.min(floor,shot.y),shot.color);
+      if(shot.blast){
+        burst(shot.x,Math.min(floor,shot.y),shot.color);
+        sfx('blast');
+      }
       if(contact||(!phased&&shot.blast&&Math.hypot(shot.x-enemy.x,shot.y-enemy.y)<shot.blast)){
         applyProjectileHit(shot,enemy,fromX);
-        if(shot.special&&!blocksFrom(enemy,fromX)){
+        if(shot.special&&!blocksFrom(enemy,fromX,shot.owner)){
           emitSignature(shot.owner,enemy,{style:shot.style,color:shot.color},24,Math.sign(shot.vx));
         }
       }
@@ -1634,7 +2367,7 @@ function update() {
     }
     return --shot.life>0&&shot.x>-30&&shot.x<990;
   });
-  sparks=sparks.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.32;return --p.life>0});
+  if(tick%2===0) shots.forEach(spawnShotTrail);
   roundClock--;
   if(a.hp<=0||b.hp<=0){
     if(a.hp<=0) startKnockout(a,b);
@@ -1646,6 +2379,9 @@ function update() {
   updateHud();
 }
 const headCenters={
+  juster:.57,jester:.57,berico:.59,oliquino:.59,
+  lour:.5,
+  maritess:.55,arianne:.57,kz:.51,michelle:.50,honey:.46,gary:.53,fernan:.61,'roj-demon':.51,brayan:.58,thazar:.52,azazel:.64,
   bryan:.55,jonneil:.56,ranelle:.51,yokan:.54,dice:.50,roj:.54,hope:.53,miguel:.64,bennedic:.62,
   fallan:.44,lynne:.46,clephus:.59,karl:.66,farrol:.57,mohammad:.46,denni:.56,
   chastity:.52,alberto:.48,aljo:.52,robin:.47,carlson:.53,fred:.52,ivanov:.48,honey:.48,
@@ -1654,7 +2390,7 @@ const headCenters={
 function paintHead(pen,sprite,id) {
   const size=Math.min(sprite.w,sprite.h*.26);
   const offset=Math.max(0,Math.min(sprite.w-size,sprite.w*(headCenters[id]??.5)-size*.5));
-  const top=({dice:.075,asmodeus:.035,tyrone:.025}[id]??0)*sprite.h;
+  const top=({dice:.075,asmodeus:.035,tyrone:.025,juster:.075,jester:.09,berico:.035,oliquino:.035}[id]??0)*sprite.h;
   pen.drawImage(sprite.image,sprite.x+offset,sprite.y+top,size,size,0,0,96,96);
 }
 function paintSprite(pen,sprite,cx,feet,height) {
@@ -1693,10 +2429,6 @@ function deformFighter(f,u,v,pose) {
     dy-=leg*(bend+forward*8);
     dx+=arm*forward*8;
     dy-=arm*9;
-  } else if(Math.abs(f.vx)>.8&&!f.guard&&!move&&!f.stun){
-    const stride=Math.sin(tick*.27)*Math.sign(f.vx*f.face);
-    dx+=stride*forward*(leg*21-arm*11);
-    dy-=Math.max(0,stride*forward)*leg*14;
   }
   if(f.guard){
     dx-=upper*15;
@@ -1759,9 +2491,7 @@ function weaponPose(f,gear,sprite,height,pose=attackPose(f)) {
   const firearm=gear.blade==='gun'||gear.blade==='launcher';
   const peak=move.low?.44:move.type==='hp'||move.type==='hk'?-.5:-.12;
   const angle=firearm?-.2*(1-windup)-Math.sin(follow*Math.PI)*.23:
-    gear.blade==='grenade'?-1.74+(windup+follow)*.95:
-    gear.blade==='spear'&&move.animation==='thrust'?peak-.35*(1-windup)+follow*.36:
-    peak-(1-windup)*1.58+follow*1.22;
+    gear.blade==='grenade'?-1.74+(windup+follow)*.95:peak-(1-windup)*1.58+follow*1.22;
   return {x:(u-.5)*width+dx,y:(v-1)*height+dy,angle};
 }
 function weaponShotOrigin(f) {
@@ -1779,7 +2509,7 @@ function weaponShotOrigin(f) {
 }
 function projectilePhysicsOrigin(f) {
   if(f.id==='semmenelin') return {x:f.x+f.face*142,y:f.y-121,fromX:f.x+f.face*33};
-  const gear=equipmentFor(f,f.move);
+  const gear=gunnerEquipmentFor(f,f.move);
   const fromX=f.x+f.face*23;
   if(f.id!=='ranelle'||!gear) return {x:f.x+f.face*38,y:f.y-80,fromX};
   const animation=attackPose(f);
@@ -1790,7 +2520,7 @@ function projectilePhysicsOrigin(f) {
   return {x:f.x+f.face*(x*Math.cos(lean)-y*Math.sin(lean)),
     y:f.y+x*Math.sin(lean)+y*Math.cos(lean),fromX};
 }
-function drawEquipment(f,gear,sprite,height,animation) {
+function drawGunnerEquipment(f,gear,sprite,height,animation) {
   const move=f.move, pose=weaponPose(f,gear,sprite,height,animation);
   const color=f.alternate?mirrorAccent:gear.color;
   const elapsed=move.t-move.wind;
@@ -1825,59 +2555,88 @@ function drawEquipment(f,gear,sprite,height,animation) {
       ctx.fillStyle='#c2c4ac';ctx.fillRect(6,-12,6,5);
     }
   } else {
-    ctx.shadowColor=color;
-    ctx.shadowBlur=gear.blade==='holy'||gear.blade==='ice'?14:0;
-    const length=move.type==='super'&&gear.blade==='spear'?gear.length+34:gear.length;
-    if(gear.blade==='spear'){
-      ctx.fillStyle='#2a3645';ctx.fillRect(-49,-4,length+22,8);
-      ctx.fillStyle='#a58a61';ctx.fillRect(-47,-4,length+19,2);
-      ctx.translate(length-30,0);
-      ctx.fillStyle=color;paintBlade(33,10);
-    } else {
-      const width=gear.blade==='ice'?15:gear.blade==='holy'?9:6;
-      ctx.fillStyle='#222938';ctx.fillRect(-15,-4,19,8);
-      ctx.fillStyle=color;paintBlade(length,width);
-      ctx.fillRect(0,-width-4,5,(width+4)*2);
-      ctx.strokeStyle='#ffffffb3';ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(8,0);ctx.lineTo(length-12,0);ctx.stroke();
-      if(gear.blade==='holy'){
-        ctx.translate(-12,-24);ctx.rotate(-.48);
-        ctx.globalAlpha=.8;paintBlade(length*.79,8);
-      }
-    }
+    ctx.fillStyle='#222938';ctx.fillRect(-15,-4,19,8);
+    ctx.fillStyle=color;paintBlade(gear.length,6);
+    ctx.fillRect(0,-10,5,20);
+    ctx.strokeStyle='#ffffffb3';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(8,0);ctx.lineTo(gear.length-12,0);ctx.stroke();
   }
   ctx.restore();
 }
 function fighterArtwork(f){
+  const outfit=fighterOutfitFrame(f,'idle');
+  if(outfit) return {sprite:outfit,height:f.artHeight??206};
   const dragon=f.id==='semmenelin', beast=f.beastUntil>tick;
+  if(f.id==='roj'&&f.costume===2){
+    const index=roster.findIndex(entry=>entry.id==='roj-demon');
+    return {sprite:(f.alternate?mirrorSprites:sprites)[index],height:roster[index].artHeight??206};
+  }
   if(f.giant){
-    const sprite=actionSprite('base/gensys-giant',f.alternate);
-    if(sprite) return {sprite,height:310};
+    const sprite=actionSprite('base/'+battleForm(f),f.alternate);
+    if(sprite) return {sprite,height:f.id==='vankov'?322:310};
+  }
+  if(f.awakened){
+    const sprite=actionSprite('base/azazel-beast',f.alternate);
+    if(sprite) return {sprite,height:281};
   }
   if(f.ascended) return {sprite:f.alternate?mirrorEnigmaRiftSprite:enigmaRiftSprite,height:236};
   if(f.id==='tyrone'&&(f.demon||beast)) return {sprite:f.alternate?mirrorTyroneDemonSprite:tyroneDemonSprite,height:238};
   if(f.index==='tyrone') return {sprite:f.alternate?mirrorSprites[roster.findIndex(fighter=>fighter.id==='tyrone')]:tyroneSprite,height:209};
   const sprite=dragon?dragonSprite:beast?(f.alternate?mirrorBeastSprite:beastSprite):(f.alternate?mirrorSprites:sprites)[f.index];
-  return {sprite,height:dragon?263:beast?232:206};
+  return {sprite,height:dragon?263:beast?232:f.artHeight??206};
 }
-function paintIdleFighter(f,sprite,height) {
-  if(!reducedMotion.matches){
+function paintGroundedFighter(f,standing,height,animate=true) {
+  const direction=animate?locomotionCel(f):'idle';
+  const form=battleForm(f);
+  const costume=fighterOutfitFrame(f,'idle',form);
+  const idle=costume??actionSprite('idle/'+form,f.alternate)??(f.awakened?actionSprite('base/'+form,f.alternate):null);
+  const stride=direction==='idle'?null:
+    costume?fighterOutfitFrame(f,direction,form):actionSprite(direction+'/'+form,f.alternate);
+  const body=stride??idle;
+  if(animate&&!reducedMotion.matches&&direction==='idle'){
     const tempo=.0025+Math.min(.0018,Math.max(0,f.speed-2.5)*.00062);
     const phase=battleVisualTime*tempo+f.seat*2.2+f.reach*.033;
-    const breath=Math.sin(phase);
-    const sway=Math.sin(phase*.64)*(.022+(f.speed>4?.012:0));
-    ctx.transform(1-breath*.013,0,sway,1+breath*.023,0,0);
+    ctx.rotate(Math.sin(phase)*.009);
   }
-  paintSprite(ctx,sprite,0,0,height);
+  if(!body){
+    paintSprite(ctx,standing,0,0,height);
+    return;
+  }
+  const pose=actionFootPose(f,height,{sprite:body,phase:direction,scale:body.poseScale??(costume?1:.96)});
+  if(costume&&!stride&&direction!=='idle'&&!reducedMotion.matches){
+    paintOutfitStride(body,pose,direction==='walk-front'?1:-1);
+  }else paintSprite(ctx,body,pose.x,pose.feet,pose.height);
+}
+function paintOutfitStride(sprite,pose,step) {
+  const {height,x,feet}=pose;
+  const width=height*sprite.w/sprite.h;
+  const cut=Math.round(sprite.h*.58);
+  const legHeight=height*(1-cut/sprite.h);
+  const middle=x+Math.max(-width*.16,Math.min(width*.16,-sprite.groundOffset*height/sprite.h));
+  const split=Math.round(sprite.w*(.5+(middle-x)/width));
+  const left=x-width/2;
+  for(const [start,end,sign] of [[0,split,-1],[split,sprite.w,1]]){
+    const span=end-start;
+    const sideX=left+start*width/sprite.w;
+    ctx.save();
+    ctx.translate(middle+sign*5,feet-legHeight);
+    ctx.rotate(sign*step*.12);
+    ctx.drawImage(sprite.image,sprite.x+start,sprite.y+cut,span,sprite.h-cut,
+      sideX-middle-sign*5,-2,span*width/sprite.w,legHeight+2);
+    ctx.restore();
+  }
+  ctx.drawImage(sprite.image,sprite.x,sprite.y,sprite.w,cut+2,left,feet-height,
+    width,height*(cut+2)/sprite.h);
 }
 function drawTeamSupport(fighter) {
   const move=fighter.move, partner=move?.teamPartner;
   if(!partner||move.t>move.wind+move.live+8) return;
   const {sprite,height}=fighterArtwork(partner);
   const form=battleForm(partner);
-  const strike=actionSprite('low/'+form,partner.alternate)??punchFrames.get(illustratedPunchSets.has(form)?form+'-mp':form);
+  const costume=fighterOutfitFrame(partner,'strike',form);
+  const strike=costume??actionSprite('strike/'+form,partner.alternate)??actionSprite('low/'+form,partner.alternate)??punchFrames.get(illustratedPunchSets.has(form)?form+'-mp':form);
   const position=Math.max(0,Math.min(1,(move.t-11)/20));
-  const x=Math.max(55,Math.min(canvas.width-55,fighter.x+fighter.face*(-113+position*207)));
+  const x=Math.max(55,Math.min(battleWidth-55,fighter.x+fighter.face*(-113+position*207)));
   const feet=Math.min(floor,fighter.y-Math.sin(position*Math.PI)*12);
   ctx.save();
   ctx.translate(x,feet);
@@ -1885,13 +2644,24 @@ function drawTeamSupport(fighter) {
   ctx.globalAlpha=Math.min(1,(move.t+1)/6,Math.max(.12,(move.wind+move.live+8-move.t)/9));
   ctx.shadowColor=partner.accent;
   ctx.shadowBlur=reducedMotion.matches?0:12;
-  paintSprite(ctx,move.t>=14&&strike?strike:sprite,0,0,height*.92);
+  if(weaponFighters.has(form)&&!costume){
+    const stage=weaponFrameStage(move.t,move.signature.beats[1].at,5,8);
+    const weapon=weaponFrame(partner,'hp',stage);
+    if(weapon.sprite){
+      const position=actionFootPose(partner,height,weapon);
+      paintSprite(ctx,weapon.sprite,position.x,position.feet,position.height);
+    } else paintGroundedFighter(partner,sprite,height,false);
+  }else if(move.t>=14&&costume){
+    const position=actionFootPose(partner,height,{sprite:costume,phase:'costume-strike'});
+    paintSprite(ctx,costume,position.x,position.feet,position.height);
+  }else paintSprite(ctx,move.t>=14&&strike?strike:sprite,0,0,height*.92);
   ctx.restore();
 }
 function drawFighter(f) {
   ctx.fillStyle='#04050a91';
   const dragon=f.id==='semmenelin';
   const {sprite,height}=fighterArtwork(f);
+  const newOutfit=fighterOutfitFrame(f,'idle');
   const ko=f.knockout?downPose(f,sprite,height,floor):null;
   if(f.dashTicks>0&&!reducedMotion.matches){
     ctx.save();
@@ -1905,8 +2675,8 @@ function drawFighter(f) {
   }
   const ending=!ko&&roundArtwork(f,f.roundPose?.role,height,f.roundPose?.form);
   const shadowWidth=ko?Math.max(25,ko.width*.45):ending&&f.roundPose.role==='loss'?
-    Math.max(26,ending.width*.37):(dragon?103:39);
-  ctx.beginPath();ctx.ellipse(ko?.x??f.x,floor+2,shadowWidth,dragon?12:8,0,0,Math.PI*2);ctx.fill();
+    Math.max(26,ending.width*.37):(dragon||f.awakened?103:39);
+  ctx.beginPath();ctx.ellipse(ko?.x??f.x,floor+2,shadowWidth,dragon||f.awakened?12:8,0,0,Math.PI*2);ctx.fill();
   if(ko){
     ctx.save();
     ctx.translate(ko.x,ko.y);
@@ -1921,42 +2691,47 @@ function drawFighter(f) {
     ctx.save();
     ctx.translate(f.x,f.y-rise);
     ctx.scale(f.face,1);
-    paintSprite(ctx,ending.sprite,0,0,ending.height);
+    paintSprite(ctx,ending.sprite,ending.x,ending.feet,ending.height);
     ctx.restore();
     return;
   }
   ctx.save();
   const animation=attackPose(f);
-  const gear=equipmentFor(f,f.move);
+  const gear=gunnerEquipmentFor(f,f.move);
   const guard=guardArtwork(f,height);
   const action=activeActionSprite(f);
   const punch=action?null:punchCel(f,gear);
+  const reactionRole=f.stun?'hit':'jump';
+  const reaction=(f.stun||f.y<floor)?
+    newOutfit?fighterOutfitFrame(f,reactionRole):actionSprite(reactionRole+'/'+battleForm(f),f.alternate):null;
   const attacking=f.move&&f.move.t>=f.move.wind&&f.move.t<f.move.wind+f.move.live;
-  const bob=f.y===floor&&Math.abs(f.vx)>.8&&!reducedMotion.matches?Math.sin(tick*.13)*2.6:0;
   const stance=f.roundPose;
   const rise=stance?.role==='win'?Math.sin(stance.progress*Math.PI)*13:0;
-  ctx.translate(f.x,f.y+bob-rise);
+  ctx.translate(f.x,f.y-rise);
   ctx.scale(f.face,1);
   const lean=stance?.role==='loss'?.22*stance.progress:stance?.role==='win'?-.13*stance.progress:0;
-  ctx.rotate(stance?lean:guard?0:f.stun?-.14:animation&&!punch&&!action?animation.lean:f.guard?-.09:f.y<floor?.10:0);
+  ctx.rotate(stance?lean:guard||reaction?0:f.stun?-.14:animation&&!punch&&!action?animation.lean:f.guard?-.09:f.y<floor?.10:0);
   ctx.save();
-  if(f.id==='ivanov'&&f.dashTicks>0) ctx.globalAlpha=.46;
+  if(phaseDashFighters.has(f.id)&&f.dashTicks>0) ctx.globalAlpha=.46;
   if(f.frozenUntil>tick){
-    paintSprite(ctx,sprite,0,0,height);
+    paintGroundedFighter(f,sprite,height,false);
   } else if(guard){
-    paintSprite(ctx,guard.sprite,guard.x,0,guard.height);
+    paintSprite(ctx,guard.sprite,guard.x,guard.feet,guard.height);
   } else if(action&&!stance){
     if(action.sprite){
       const position=actionFootPose(f,height,action);
-      paintSprite(ctx,action.sprite,position.x,0,position.height);
-    } else paintSprite(ctx,sprite,0,0,height);
+      paintSprite(ctx,action.sprite,position.x,position.feet,position.height);
+    } else paintGroundedFighter(f,sprite,height,false);
   } else if(punch&&!stance){
     drawPunchCel(f,sprite,height,punch);
+  } else if(reaction&&!stance){
+    const position=actionFootPose(f,height,{phase:'reaction',sprite:reaction});
+    paintSprite(ctx,reaction,position.x,position.feet,position.height);
   } else if(!stance&&(f.move||f.guard||f.stun||f.y<floor)){
     const cel=battleCel(f,sprite,height,animation);
     ctx.drawImage(cel.image,-cel.pivot.x,-cel.pivot.y);
-  } else if(!stance&&Math.abs(f.vx)<=.8){
-    paintIdleFighter(f,sprite,height);
+  } else if(!stance){
+    paintGroundedFighter(f,sprite,height);
   } else paintAnimatedFighter(f,sprite,height,animation);
   ctx.restore();
   if(f.frozenUntil>tick){
@@ -1968,7 +2743,7 @@ function drawFighter(f) {
   if(f.guard&&f.blockUntil>tick){
     drawGuardImpact(f,height);
   }
-  if(gear&&!action) drawEquipment(f,gear,sprite,height,animation);
+  if(gear&&!action) drawGunnerEquipment(f,gear,sprite,height,animation);
   if(dragon&&!action&&f.move&&(f.move.shot||f.move.signature)){
     const charge=Math.min(1,f.move.t/f.move.wind);
     ctx.save();ctx.translate(142,-121);ctx.fillStyle='#ffbe6a';
@@ -2041,6 +2816,18 @@ function drawShot(shot) {
     ctx.beginPath();ctx.ellipse(0,0,13+Math.sin(shot.age*.28)*4,22,-.27,0,Math.PI*2);ctx.stroke();
     ctx.lineWidth=1.5;ctx.strokeStyle='#edfcff';
     ctx.beginPath();ctx.ellipse(0,0,9,17,-.27,0,Math.PI*2);ctx.stroke();
+  } else if(shot.shape==='ice'){
+    ctx.beginPath();ctx.moveTo(-21,-5);ctx.lineTo(-6,-13);ctx.lineTo(19,-2);ctx.lineTo(7,10);ctx.lineTo(-19,8);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#ebfcff';ctx.beginPath();ctx.moveTo(-6,-13);ctx.lineTo(4,0);ctx.lineTo(7,10);ctx.moveTo(4,0);ctx.lineTo(19,-2);ctx.stroke();
+  } else if(shot.shape==='water'){
+    ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,17,10,-.29,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#d7fff9';ctx.beginPath();ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
+  } else if(shot.shape==='stone'){
+    ctx.rotate(shot.age*.10);ctx.beginPath();
+    ctx.moveTo(-16,-5);ctx.lineTo(-7,-14);ctx.lineTo(13,-13);ctx.lineTo(17,4);ctx.lineTo(2,15);ctx.lineTo(-12,10);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#694435';ctx.lineWidth=2;ctx.stroke();
+  } else if(shot.shape==='spirit'){
+    energyOrb(21,shot.color);ctx.fillStyle='#fff0df';paintStar(10,shot.age*.12);
   } else if(shot.shape==='wave'){
     ctx.lineWidth=4;
     ctx.beginPath();ctx.ellipse(-4,0,15,24,0,-1.4,1.4);ctx.stroke();
@@ -2159,7 +2946,7 @@ function separateSuperCallouts(labels) {
   const height=44;
   if(Math.abs(a.x-b.x)>=a.halfWidth+b.halfWidth||Math.abs(a.y-b.y)>=height) return;
   const top=a.y<=b.y?a:b, bottom=top===a?b:a;
-  const middle=Math.max(34+height/2,Math.min(canvas.height-12-height/2,(a.y+b.y)/2));
+  const middle=Math.max(34+height/2,Math.min(battleHeight-12-height/2,(a.y+b.y)/2));
   top.y=middle-height/2;
   bottom.y=middle+height/2;
 }
@@ -2170,9 +2957,9 @@ function drawSuperCallouts() {
   ctx.lineJoin='round';
   const labels=fighters.filter(f=>f.superCall?.until>tick&&f.hp>0).map(f=>{
     const text=f.superCall.text.toUpperCase(), {height}=fighterArtwork(f);
-    const width=Math.min(canvas.width-36,ctx.measureText(text).width);
+    const width=Math.min(battleWidth-36,ctx.measureText(text).width);
     const halfWidth=width/2+11;
-    return {text,halfWidth,width,x:Math.max(halfWidth,Math.min(canvas.width-halfWidth,f.x)),
+    return {text,halfWidth,width,x:Math.max(halfWidth,Math.min(battleWidth-halfWidth,f.x)),
       y:Math.max(34,f.y-height-13),color:f.alternate?mirrorAccent:'#fff0b8'};
   });
   separateSuperCallouts(labels);
@@ -2188,15 +2975,15 @@ function drawBossTransformation(scene) {
   const reveal=motion?progress>=.46:true;
   const after=Math.max(0,(progress-.46)/.54);
   const {boss}=scene;
-  const {sprite}=fighterArtwork(reveal?boss:{...boss,demon:false,ascended:false,giant:false});
+  const {sprite}=fighterArtwork(reveal?boss:{...boss,demon:false,ascended:false,giant:false,awakened:false});
   const glow=ctx.createRadialGradient(480,245,25,480,245,363);
-  glow.addColorStop(0,boss.demon?'#80253b':'#3b2686');
+  glow.addColorStop(0,boss.demon||boss.awakened?'#80253b':'#3b2686');
   glow.addColorStop(1,'#090611ee');
   ctx.fillStyle=glow;
   ctx.fillRect(0,0,960,540);
   ctx.save();
   ctx.translate(480,257);
-  ctx.strokeStyle=boss.demon?'#fa7551':'#9dcaff';
+  ctx.strokeStyle=boss.demon||boss.awakened?'#fa7551':'#9dcaff';
   ctx.lineWidth=2;
   for(let i=0;i<4;i++){
     const width=91+i*34+(motion?progress*65:0);
@@ -2205,13 +2992,25 @@ function drawBossTransformation(scene) {
     ctx.ellipse(0,0,width,width*.77,motion?progress*(i-1)*.55:0,0,Math.PI*2);
     ctx.stroke();
   }
+  if(boss.id==='vankov'&&boss.giant){
+    const radius=motion?205*(1-Math.min(1,progress/.56))+38:140;
+    for(let i=0;i<7;i++){
+      const angle=i*Math.PI*2/7+(motion?progress*1.7:0);
+      const x=Math.cos(angle)*radius, y=Math.sin(angle)*radius*.78;
+      ctx.globalAlpha=motion?1-Math.max(0,progress-.60):.85;
+      ctx.strokeStyle='#ffa488';
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(0,0);ctx.stroke();
+      ctx.shadowColor='#ff7664';ctx.shadowBlur=22;ctx.fillStyle='#ffd0a6';
+      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();
+    }
+  }
   ctx.restore();
   ctx.fillStyle='#08060d';
   ctx.fillRect(0,0,960,43);
   ctx.fillRect(0,455,960,85);
   ctx.save();
   ctx.translate(480,447);
-  ctx.scale(-1,1);
+  ctx.scale(boss.face??-1,1);
   ctx.globalAlpha=motion&&reveal?Math.min(1,.35+after*4):1;
   const cinematicHeight=motion?(reveal?356+after*25:304+progress*88):364;
   const zoom=Math.min(cinematicHeight,800*sprite.h/sprite.w);
@@ -2219,34 +3018,69 @@ function drawBossTransformation(scene) {
   ctx.restore();
 }
 function draw() {
+  ctx.setTransform(canvas.width/battleWidth,0,0,canvas.height/battleHeight,0,0);
   ctx.fillStyle='#10131c';ctx.fillRect(0,0,960,540);
   const stage=stages[match.stage], ground=arenaCatalog[match.stage][2];
-  const cover=Math.max(canvas.width/stage.width,canvas.height/stage.height);
+  const cover=Math.max(battleWidth/stage.width,battleHeight/stage.height);
   // Align the new stage's floor with the fighters while keeping the full canvas covered.
   const scale=ground?Math.max(cover,floor/(stage.height*ground),
-    (canvas.height-floor)/(stage.height*(1-ground))):cover;
+    (battleHeight-floor)/(stage.height*(1-ground))):cover;
   const w=stage.width*scale,h=stage.height*scale;
-  const y=ground?floor-h*ground:(canvas.height-h)/2;
-  ctx.drawImage(stage,(canvas.width-w)/2,y,w,h);
+  const y=ground?floor-h*ground:(battleHeight-h)/2;
+  ctx.drawImage(stage,(battleWidth-w)/2,y,w,h);
   if(interlude?.boss){drawBossTransformation(interlude);return;}
   if(superEffects.some(effect=>effect.kind==='cast')){
     ctx.fillStyle='#080b2177';ctx.fillRect(0,0,960,540);
   }
   ctx.save();
-  ctx.translate(shake&&!reducedMotion.matches?Math.sin(tick*2)*shake:0,0);
-  shake=Math.max(0,shake-.6);
+  const camera=cameraShake(shake);
+  ctx.translate(camera.x,camera.y);
+  shake=Math.max(0,shake*.9-.25);
+  fighters.forEach(drawMagicSigil);
   fighters.forEach(drawTeamSupport);
   fighters.forEach(drawFighter);
   shots.forEach(drawShot);
   superEffects.forEach(drawSuperEffect);
-  sparks.forEach(p=>{ctx.globalAlpha=p.life/17;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,4,4)});
+  drawParticles();
   ctx.restore();
+  drawScreenFlash();
+  drawCountdown();
   drawSuperCallouts();
 }
+function resizeBattleCanvas() {
+  const displayWidth=canvas.clientWidth;
+  if(!displayWidth) return;
+  const scale=globalThis.devicePixelRatio||1;
+  const width=Math.max(battleWidth,Math.min(2560,Math.round(displayWidth*scale)));
+  const height=Math.round(width*battleHeight/battleWidth);
+  if(canvas.width===width&&canvas.height===height) return;
+  canvas.width=width;
+  canvas.height=height;
+  if(screen==='battle'&&match&&stages[match.stage]) draw();
+}
+
+const battleScreen=$('battle'), fullscreenButton=$('arenaFullscreen');
+fullscreenButton.hidden=!document.fullscreenEnabled||!battleScreen.requestFullscreen;
+fullscreenButton.onclick=async()=>{
+  try {
+    if(document.fullscreenElement===battleScreen) await document.exitFullscreen();
+    else await battleScreen.requestFullscreen();
+  } catch {
+    // The arena stays playable when the browser denies a full-screen request.
+  }
+};
+addEventListener('fullscreenchange',()=>{
+  fullscreenButton.textContent=document.fullscreenElement===battleScreen?'Exit Full Screen':'Full Screen';
+  resizeBattleCanvas();
+});
+addEventListener('resize',resizeBattleCanvas);
+if(typeof ResizeObserver==='function') new ResizeObserver(resizeBattleCanvas).observe(canvas);
+
 function frame(now) {
   battleVisualTime=now;
   const elapsed=Math.min(50,now-(previous||now));
   previous=now;
+  if(screen==='storyPage'&&storyAdvanceAt&&now>=storyAdvanceAt) freshMatch();
   if(screen==='battle'&&$('result').hidden) {
     if(dialogue){
       advanceDialogue(elapsed);
@@ -2255,7 +3089,10 @@ function frame(now) {
     } else {
       accumulator+=elapsed;
       while(accumulator>=fixedStep&&!dialogue&&!interlude&&$('result').hidden){
-        update();tapped.clear();accumulator-=fixedStep;
+        // Hit-stop freezes the action for a few frames so blows land with weight.
+        if(hitStop>0) hitStop--;
+        else {update();tapped.clear();}
+        accumulator-=fixedStep;
       }
     }
     draw();

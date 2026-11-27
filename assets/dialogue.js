@@ -1,96 +1,101 @@
 const fighterDialogue = {
+  lour:{
+    intro:['Guard up. I’d rather patch you than bury you.','This staff heals. It also bruises.','Let’s keep this short. People are waiting on me.'],
+    win:['Hold still. Let me see that cut.','The Divine Will was kind today.','I still have light to spare. For you, too.','Rest. I’ll take first watch.','Tell me if it still hurts tomorrow.'],
+    loss:['My hands are shaking. Just a moment.','The medicine’s in my satchel. Take it.','I can still guide you out.','The ward broke before I did.','Check on the others first. Please.']
+  },
   bryan: {
-    intro: ['I only need one opening.', 'Show me how you fight.', 'Let’s see if my read is right.'],
-    win: ['You gave away your timing.', 'One clean opening was enough.', 'The plan held.', 'I saw that last move coming.', 'That’s the fight I prepared for.'],
-    loss: ['I read the wrong threat.', 'That opening was bait.', 'I had the timing backwards.', 'I lost track of your rhythm.', 'I’ll run the sequence again.']
+    intro: ['Show me your opening. I’ll find it.','Ciphers, stand by. I’ve got this one.','I’ve already planned three ways this ends.'],
+    win: ['Read you from the first step.','The plan held. Everyone’s still standing.','One opening. That’s all I needed.','Nobody gets left behind on my watch.','That’s the fight I drilled for.'],
+    loss: ['I read the wrong threat.','That opening was bait. Good call.','Tell the team to hold position.','I can’t afford to lose like this.','I’ll run the plan again. Better.']
   },
   jonneil: {
-    intro: ['Come closer. Let’s settle this.', 'I hope you can take a hit.', 'You ready? My hands are.'],
-    win: ['That last punch felt right.', 'I told you to keep your guard up.', 'You made me work for that.', 'My hands are still warm.', 'One more round? I can keep going.'],
-    loss: ['I walked right into that.', 'Guess I dropped my hands.', 'You hit harder than you look.', 'Give me a second to breathe.', 'I should’ve waited for my opening.']
+    intro: ['Grandpa Khan said punch first. Kidding. Mostly.','You ready? My knuckles are.','Let’s make this quick. I’m hungry.'],
+    win: ['Khan would’ve made that a riddle. I made it a punch.','Told you to keep your guard up.','Ooh, that one’s going in the records.','Still warmed up. Round two?','That’s the family style, friend.'],
+    loss: ['Walked right into that one.','Okay. That was a good joke. On me.','You hit harder than you look.','Give me a second. And some water.','Grandpa’s laughing at me somewhere.']
   },
   ranelle: {
-    intro: ['One round. Pick your ground.', 'Range checked. I’m ready.', 'Come in close if you want. I brought a knife.'],
-    win: ['Target down. Weapon safe.', 'That’s why I kept my distance.', 'The last shot did its job.', 'I’m still on my feet.', 'Even my backup plan had a backup.'],
-    loss: ['I lost the range. My mistake.', 'You caught me between shots.', 'Should’ve gone to the knife sooner.', 'I need a better angle next round.', 'I’m out of room. You got me.']
+    intro: ['Range set. Skyblender ready.','Step closer and meet the knife.','Pick your cover. You’ll need it.'],
+    win: ['Target down. Safety on.','That’s why I keep my distance.','Skyblender call sign: mission complete.','Backup plan had a backup.','Clean shot. Clean finish.'],
+    loss: ['Lost the range. My mistake.','Caught me reloading. Smart.','Should’ve drawn the knife sooner.','Grandfather’s going to hear about this.','Out of ammo. Out of room.']
   },
   yokan: {
-    intro: ['The cold will reach you soon enough.', 'Keep your eyes on the blade.', 'I can still lift this sword.'],
-    win: ['The blade is quiet again.', 'You hesitated when the frost set in.', 'I needed only one clear cut.', 'I can still stand. That’s enough.', 'The ice will thaw. Stay down until it does.'],
-    loss: ['My grip slipped.', 'My old wound opened again.', 'You moved before the ice could hold.', 'My blade was a breath too late.', 'I’ll have to find my footing again.']
+    intro: ['Keep your eyes on the blade.','The frost bites harder than I do.','My arm’s fine. Don’t ask.'],
+    win: ['The ice settles. So do you.','One clean cut. That’s all.','Stay down until it thaws.','I can still close my hand. Good.','Roj taught me patience. The sword did the rest.'],
+    loss: ['The old wound opened again.','My grip slipped. It’s nothing.','The ice cracked before you did.','Don’t tell the others about my arm.','A breath too late. Again.']
   },
   dice: {
-    intro: ['Did that shadow just move?', 'I brought a few friends.', 'Try to keep track of me.'],
-    win: ['Careful where you step. My shadows are still here.', 'You counted one of me.', 'The dark corner was a good hiding place.', 'Looks like my friends had fun.', 'Even the shadows knew how that would end.'],
-    loss: ['Who turned on the lights?', 'I lost my own shadow for a moment.', 'You found the real one.', 'I should’ve picked a darker corner.', 'All that misdirection and you still got me.']
+    intro: ['Which shadow is the real me?','I brought friends. You can’t see them.','Abanel called me a killer. Wrong guy.'],
+    win: ['Mind your step. My shadows stay.','You counted one of me. Bad math.','Still innocent. Still winning.','Darkness picked a side.','My friends had fun with you.'],
+    loss: ['Who turned on the lights?','You found the real one. Rude.','I lost my own shadow there.','Should’ve picked a darker corner.','Even framed men lose sometimes.']
   },
   roj: {
-    intro: ['I’ll draw only what I need.', 'The light is with me.', 'Stand ready. I’m drawing my blades.'],
-    win: ['The blades can rest.', 'The light found a way through.', 'I held my ground.', 'That last step decided it.', 'We’re finished here. You can lower your guard.'],
-    loss: ['I couldn’t keep the blades aligned.', 'My feet gave the move away.', 'You broke my stance.', 'I reached too far.', 'My hands remember how to stand again.']
+    intro: ['Twin blades. One light.','I don’t remember you. My blades might.','Stand ready. I won’t hold back.'],
+    win: ['The blades rest. The light stays.','My hands remembered what I forgot.','Lower your guard. It’s over.','The light found its way through.','One step. That decided it.'],
+    loss: ['The blades slipped out of line.','You broke my stance.','I reached for a memory. Missed.','The light dimmed. Not out.','Apple, don’t worry. I’ll get up.']
   },
   hope: {
-    intro: ['Check your pockets after this.', 'Catch me if you can.', 'I bet you’re watching the wrong hand.'],
-    win: ['That opening was too good to leave behind.', 'You can have the throwing star back.', 'I’ll be gone before you get up.', 'You watched my hands. I moved my feet.', 'I think I got away with that.'],
-    loss: ['Well, you caught me.', 'So much for the quick exit.', 'I should’ve kept a star in reserve.', 'I thought I was faster.', 'You didn’t fall for the oldest trick.']
+    intro: ['Check your pockets after this.','Watch the left hand. Wrong hand.','Catch me and I’ll split the loot.'],
+    win: ['You can keep the throwing star. Souvenir.','You watched my hands. I moved my feet.','Griselda eats tonight.','Gone before you stand up.','Pretty sure I got away with that.'],
+    loss: ['Well. You caught me.','So much for the quick exit.','Out of stars. Out of luck.','Fine. You win. Keep your wallet.','You saw through the oldest trick.']
   },
   miguel: {
-    intro: ['Listen. The wind is changing.', 'One arrow will tell me how you move.', 'Give me a clear line and we can begin.'],
-    win: ['The wind was on my side.', 'That last arrow flew true.', 'The clearing is quiet again.', 'Patience bought me the shot.', 'You left me a clean line.'],
-    loss: ['I misjudged the wind.', 'You closed the distance too quickly.', 'I should’ve waited to loose that arrow.', 'My footing went first.', 'I’ll take a different trail next time.']
+    intro: ['The wind’s turning. Can you feel it?','One arrow tells me how you move.','Give me a clear line, ranger’s rules.'],
+    win: ['The wind was on my side.','That arrow flew true.','Patience bought the shot.','Clearing’s quiet again.','Lyle’s army never taught me that.'],
+    loss: ['Misjudged the wind.','You closed the gap too fast.','I loosed too early.','Lynne’s going to tease me for this.','I’ll find a better trail.']
   },
   bennedic: {
-    intro: ['I can hold it back. For now.', 'Let’s finish before the curse wakes.', 'If my eyes change, step back.'],
-    win: ['It’s quiet in my head again.', 'I’m still myself. That matters.', 'The beast can sleep.', 'I held the curse long enough.', 'It didn’t take everything from me today.'],
-    loss: ['The curse is pulling harder now.', 'I lost control at the wrong moment.', 'I couldn’t hold the change.', 'Give me room. I’m still fighting it.', 'I need to get back on my feet before it does.']
+    intro: ['If my eyes change, step back.','Let’s finish before the beast wakes.','I’m holding it back. For now.'],
+    win: ['Still me. That matters.','The beast stays asleep today.','Gallahan, I’m one step closer.','I held the curse long enough.','Quiet in my head again.'],
+    loss: ['The curse is pulling harder.','Give me room. It’s fighting me.','I lost control. I’m sorry.','I can’t hold the change much longer.','Gallahan… wait for me.']
   },
   fallan: {
-    intro: ['Apollo, hear me.', 'The elements are unsettled today.', 'Let’s see which element answers first.'],
-    win: ['Apollo, you can rest.', 'The last element answered just in time.', 'The circle is closed.', 'The air has settled again.', 'I felt the spell take hold.'],
-    loss: ['The circle broke too early.', 'Apollo, withdraw.', 'My casting fell out of rhythm.', 'I forced an element that wouldn’t answer.', 'I’ll need a steadier hand.']
+    intro: ['Apollo, stand with me.','Fire, wind, stone. Pick your poison.','The elements are restless today.'],
+    win: ['Apollo, rest now.','The circle closed in time.','No Hades this time. Just me.','The last element answered.','The air settles. So do you.'],
+    loss: ['The circle broke too early.','I forced an element that wouldn’t come.','Apollo, withdraw.','Never again will Hades answer me.','I need a steadier hand.']
   },
   lynne: {
-    intro: ['Shall I deal?', 'One round. Place your bets.', 'Want to see what I drew?'],
-    win: ['The house can pay up now.', 'That’s a nice hand to end on.', 'I was saving that last card.', 'Looks like I read the table correctly.', 'I’ll take the pot, thanks.'],
-    loss: ['I should’ve folded.', 'Well played. I misread the table.', 'Even my last card couldn’t save that hand.', 'I chased the wrong draw.', 'Next hand, you deal.']
+    intro: ['Shall I deal?','Place your bets. House rules: mine.','Want to see what I drew?'],
+    win: ['Royal hand. Pay up.','Saved my best card for last.','Read the table like a book.','Grandfather would’ve loved that hand.','I’ll take the pot, thanks.'],
+    loss: ['Should’ve folded.','Chased the wrong draw.','Even my last card couldn’t save it.','Well played. I misread you.','Next hand, you deal.']
   },
   tyrone: {
-    intro: ['So you’ve come to close the gate.', 'You walked all this way to face me.', 'Hades has waited long enough.'],
-    win: ['The gate stays open.', 'You can hear them through the stone.', 'Your friends will hear of this.', 'Take your warning back to the Ciphers.', 'I have more than one form for a reason.'],
-    loss: ['The gate is slipping away from me.', 'I can feel the stone closing.', 'I thought this form would be enough.', 'The dark won’t answer me now.', 'You’ve bought the world another dawn.']
+    intro: ['You came all this way to beg?','Earth looked away while worlds burned.','The Gate of Hades is listening.'],
+    win: ['The gate stays open.','Kneel, and hear Hades breathing.','The Zodiac will remember your fall.','Carry my warning to the Ciphers.','A Watcher never falls twice.'],
+    loss: ['The gate… slips from my hand.','This form wasn’t enough.','The Zodiac is breaking.','You’ve bought Earth one more dawn.','The dark won’t answer me now.']
   },
   semmenelin: {
-    intro: ['You stand in my lair.', 'The stone remembers your footsteps.', 'Come closer. I would see who woke me.'],
-    win: ['The mountain has taken your measure.', 'My fire outlasts you.', 'Go, while the path behind you still stands.', 'You woke a fire you could not put out.', 'The lair will be quiet again.'],
-    loss: ['My flame gutters.', 'Even this mountain must yield.', 'I can no longer hold the fire.', 'The stone will remember your name.', 'Go. The lair is yours to leave.']
+    intro: ['You stand in my lair, little flame.','Who dares wake the mountain?','Come. I would see who climbed so far.'],
+    win: ['My fire outlasts kingdoms. And you.','The mountain has taken your measure.','Leave while the path still stands.','Your torch was too small.','Back to sleep. Back to silence.'],
+    loss: ['My flame… gutters.','Even the mountain bows.','The torch is lit. Take it.','The stone will remember you.','Go. The lair is yours to leave.']
   },
   clephus: {
-    intro: ["Sigma’s orders come from me.", "I gave you room to leave.", "Step into the shadow."],
-    win: ["Sigma will proceed.", "Clean this up before my return.", "You can carry my answer back.", "That was your last opening.", "I have made my decision."],
-    loss: ["Withdraw the unit.", "I misjudged the distance.", "You stopped me cleanly.", "The dark slipped from my grasp.", "Call the operation off."],
+    intro: ['Sigma answers to me.','Step into the shadow.','I gave you a chance to leave.'],
+    win: ['Sigma proceeds.','The dark obeys its master.','Carry my answer back.','That was your last opening.','My decision stands.'],
+    loss: ['Withdraw the unit.','The dark slipped my grasp.','A clean stop. Noted.','Call off the operation.','This changes nothing.'],
   },
   karl: {
-    intro: ["How fast can you turn?", "Look at my hands while you can.", "I want to see you try to keep up."],
-    win: ["I barely warmed up.", "You watched the wrong hand.", "You heard the first strike, at least.", "I’ll polish the claws later.", "I left you one opening."],
-    loss: ["You caught the second step.", "My claws caught on the guard.", "I hate that you saw it coming.", "I moved too early.", "Next time I change the rhythm."],
+    intro: ['Can you keep up?','Watch the claws while you can.','Blink and it’s over.'],
+    win: ['Barely warmed up.','Too slow. Always too slow.','You heard the first strike, at least.','I’ll polish the claws later.','Speed kills. Lucky you.'],
+    loss: ['You caught the second step.','I moved too early.','I hate that you saw it.','Claws snagged on your guard.','Next time, a new rhythm.'],
   },
   farrol: {
-    intro: ["Hands up. Let’s go.", "I hope you can take a hit.", "Come a little closer."],
-    win: ["My knuckles are still good.", "I got inside your reach.", "You made me earn that.", "That last one felt right.", "You can get up now."],
-    loss: ["I swung too wide.", "That one folded me.", "I should’ve kept my hands up.", "You beat me in close.", "Give me a minute to breathe."],
+    intro: ['Hands up. Let’s go.','Sigma pays me to hit things. Hello.','Come a little closer.'],
+    win: ['Knuckles still good.','Got inside your reach.','You made me earn that.','Stay down. Easier that way.','That last one felt right.'],
+    loss: ['Swung too wide.','That one folded me.','Should’ve kept my hands up.','Beat me in close. Respect.','Give me a minute.'],
   },
   mohammad: {
-    intro: ["Watch where you stand.", "I have one more sigil to draw.", "The staff is already humming."],
-    win: ["The circle held.", "You stepped onto the wrong mark.", "That completes the spell.", "I’ll leave the next rune blank.", "The crystal can cool now."],
-    loss: ["The rune came apart.", "You cut my casting short.", "I drew it too close to you.", "My staff will need a new crystal.", "I missed a stroke."],
+    intro: ['Mind where you stand.','One more seal to draw.','The staff is already humming.'],
+    win: ['The seal held.','You stepped on the wrong mark.','The ward is complete.','The old warnings were right.','The crystal can cool now.'],
+    loss: ['The rune came apart.','You broke my casting.','I missed a stroke.','The staff needs a new crystal.','The seal… failed me.'],
   },
   denni: {
-    intro: ["Pressure’s good. Let’s test it.", "Mind the moving parts.", "I built this one myself."],
-    win: ["Still within tolerance.", "That piston earned its keep.", "I can tighten it up later.", "Even the old rig could take that.", "Good. The relief valve works."],
-    loss: ["I blew a seal.", "The timing belt slipped.", "That dent’s coming out tonight.", "I should’ve tested it under load.", "I’ll need the heavy wrench."],
+    intro: ['Pressure’s good. Let’s test it.','Mind the moving parts.','Built this rig myself.'],
+    win: ['Still within tolerance.','That piston earned its keep.','Relief valve works. Good.','Fred’s rigs could never.','Log it. Field test passed.'],
+    loss: ['Blew a seal.','Timing belt slipped.','That dent’s coming out tonight.','Should’ve tested it under load.','Hand me the heavy wrench.'],
   },
 };
 
 const drawDialogue = [
-  'We both held our ground.', 'I can’t call that either way.', 'We’ll have to settle this another round.'
+  'Neither of us gave an inch.', 'Call it even. For now.', 'Same time next round?'
 ];

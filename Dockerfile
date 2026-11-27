@@ -1,6 +1,7 @@
 FROM nginx:1.27-alpine
 
 COPY index.html /usr/share/nginx/html/index.html
+COPY audio-credits.html /usr/share/nginx/html/audio-credits.html
 COPY assets /usr/share/nginx/html/assets
 
 EXPOSE 80

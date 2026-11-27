@@ -30,11 +30,6 @@ const attackTracks = {
     strike:{drive:3,lean:-.27,crouch:-4,legAngle:-1.87,footX:13,footY:-19},
     follow:{drive:1,lean:-.15,legAngle:-1.31,footX:5,footY:-7}
   },
-  thrust: {
-    prepare:{drive:-8,lean:-.07,handX:-25,handY:5,crouch:4},
-    strike:{drive:19,lean:.13,handX:54,handY:-3},
-    follow:{drive:8,lean:.06,handX:24,handY:4}
-  },
   slash: {
     prepare:{drive:-7,lean:-.12,handX:-20,handY:-22,crouch:6},
     strike:{drive:17,lean:.16,handX:59,handY:16},
@@ -63,7 +58,7 @@ const attackTracks = {
 };
 
 const normalAnimation = {lp:'jab',mp:'hook',hp:'uppercut',lk:'sweep',mk:'sideKick',hk:'roundhouse'};
-const spellProjectiles = new Set(['shadow','element','holy','star','rune','wave','nebula','beam','dragonfire','spore','halo']);
+const spellProjectiles = new Set(['shadow','element','holy','star','rune','wave','nebula','beam','dragonfire','spore','halo','ice','water','stone','spirit']);
 const martialSupers = new Set(['bryan','jonneil','yokan','karl','farrol','denni','bennedic','carlson','alberto','fred','miguel']);
 const handShots = new Set(['bullet','missile','piston','laser']);
 
@@ -73,7 +68,6 @@ function attackAnimation(fighter,move,gear) {
   if(handShots.has(shot)||shot==='arrow') return 'gun';
   if(spellProjectiles.has(shot)) return 'cast';
   if(shot) return 'lob';
-  if(gear?.blade==='spear'&&move.type!=='hp') return 'thrust';
   if(gear||(fighter.id==='carlson'&&!move.kick)) return 'slash';
   if(move.type==='super'){
     if(fighter.id==='jonneil') return 'jab';
@@ -159,5 +153,7 @@ const classicSuperLooks = {
   mohammad:{style:'sigil',color:'#b6dcff'},
   denni:{style:'piston',color:'#ffbf79'},
   semmenelin:{style:'inferno',color:'#ff9558'},
-  tyrone:{style:'demon',color:'#cf8fff'}
+  tyrone:{style:'demon',color:'#cf8fff'},
+  ivanna:{style:'rings',color:'#46c0e8'},shtrgoi:{style:'rift',color:'#e7868c'},
+  precious:{style:'sigil',color:'#b9f5ae'},clark:{style:'rings',color:'#ffa060'},vankov:{style:'grid',color:'#ffbd45'}
 };

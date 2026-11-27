@@ -413,3 +413,64 @@ function drawSuperEffect(effect) {
   }
   ctx.restore();
 }
+
+
+const magicSigilShots = new Set(['shadow','element','holy','star','rune','wave','nebula','dragonfire','ice','water','stone','spirit']);
+const magicSigilSupers = new Set([
+  'yokan','dice','roj','hope','bennedic','fallan','clephus','mohammad','chastity',
+  'robin','honey','asmodeus','enigma','tyrone','semmenelin','maritess','arianne','kz','michelle','roj-demon','thazar','azazel'
+]);
+
+function magicSigilColor(fighter,move) {
+  const shot=shotShape(move);
+  if(move.type==='super'){
+    if(move.slot===3||(!magicSigilSupers.has(fighter.id)&&!magicSigilShots.has(shot)&&!move.signature?.magic)) return null;
+    return superLook(fighter,move.slot).color;
+  }
+  const holyBoomerang=fighter.id==='chastity'&&shot==='boomerang';
+  const magicMelee=move.type==='lp'&&(fighter.id==='dice'||fighter.id==='fallan');
+  if(!holyBoomerang&&!magicMelee&&!magicSigilShots.has(shot)) return null;
+  return fighter.alternate?mirrorAccent:(move.castColor??move.shot?.color??fighter.accent);
+}
+
+function drawMagicSigil(fighter) {
+  const move=fighter.move;
+  if(!move||fighter.hp<=0) return;
+  const color=magicSigilColor(fighter,move);
+  if(!color) return;
+
+  const powered=move.type==='super';
+  const charge=Math.min(1,(move.t+2)/Math.max(1,move.wind*.7));
+  const fade=Math.max(0,1-Math.max(0,move.t-move.wind-move.live)/(powered?14:9));
+  if(!fade) return;
+  const phase=reducedMotion.matches?0:battleVisualTime*.0032;
+  const radius=(powered?92:64)*(.8+charge*.2);
+  ctx.save();
+  ctx.translate(fighter.x,floor+1);
+  ctx.scale(1,.34);
+  ctx.globalAlpha=fade*(.52+charge*.40);
+  ctx.shadowColor=color;
+  ctx.shadowBlur=powered?15:9;
+  ctx.strokeStyle=color;
+  ctx.fillStyle=color;
+  ctx.lineWidth=3;
+  for(const size of [radius,radius*.78]){
+    ctx.beginPath();ctx.arc(0,0,size,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.rotate(phase);
+  ctx.lineWidth=2;
+  for(let i=0;i<6;i++){
+    const angle=i*Math.PI/3;
+    const x=Math.cos(angle), y=Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(x*radius*.78,y*radius*.78);
+    ctx.lineTo(Math.cos(angle+Math.PI*2/3)*radius*.78,Math.sin(angle+Math.PI*2/3)*radius*.78);
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(x*radius*.89,y*radius*.89);
+    ctx.rotate(angle+Math.PI/4);
+    ctx.strokeRect(-3,-3,6,6);
+    ctx.restore();
+  }
+  ctx.restore();
+}
